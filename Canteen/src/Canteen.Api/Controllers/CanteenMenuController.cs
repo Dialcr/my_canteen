@@ -1,0 +1,41 @@
+﻿using Canteen.DataAccess.Entities;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Canteen.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class CanteenMenuController : ControllerBase
+{
+    readonly MenuServices _menuServices;
+    readonly ILogger<CanteenMenuController> _logger;
+
+    public CanteenMenuController(
+        MenuServices menuServices,
+        ILogger<CanteenMenuController> logger)
+    {
+        _menuServices = menuServices;
+        _logger = logger;
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(Menu), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentDate(
+        int idEstablishment,
+        DateTime date)
+    {
+        var result = _menuServices.GetMenuByEstablishmentAndDate(idEstablishment, date);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+
+            return error;
+        }
+
+        _logger.LogInformation($"Menu from establishment {idEstablishment} in date {date}found correctly");
+
+        return response;
+    }
+}
