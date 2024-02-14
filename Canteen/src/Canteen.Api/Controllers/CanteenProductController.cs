@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
@@ -22,7 +23,7 @@ public class CanteenProductController : ControllerBase
     [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductById")]
-    public OneOf<ResponseErrorDto, Product> GetCantneeProductById(int productId)
+    public IActionResult GetCantneeProductById(int productId)
     {
         var result = _productServices.GetCantneeProductById(productId);
 
@@ -30,69 +31,69 @@ public class CanteenProductController : ControllerBase
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
-            return error;
+            return BadRequest(error);
         }
 
         _logger.LogInformation("CantneeProduct found correctly");
 
-        return response;
+        return Ok(response);
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductsByCategory")]
-    public OneOf<ResponseErrorDto, List<Product>> GetCantneeProductsByCategory(string categoryProduct)
+    public IActionResult GetCantneeProductsByCategory(string categoryProduct)
     {
         var result = _productServices.GetCantneeProductsByCategory(categoryProduct);
 
-        if (result.TryPickT0(out var error, out var response))
+        if (result.Result.TryPickT0(out var error, out var response))
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
-            return error;
+            return BadRequest(error);
         }
 
         _logger.LogInformation($"All CantneeProduct of category  found correctly {categoryProduct}");
 
-        return response;
+        return Ok(response);
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductsByDietaryRestrictions")]
-    public OneOf<ResponseErrorDto, List<Product>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
+    public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {
         var result = _productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
 
-        if (result.TryPickT0(out var error, out var response))
+        if (result.Result.TryPickT0(out var error, out var response))
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
-            return error;
+            return BadRequest(error);
         }
 
         _logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
 
-        return response;
+        return Ok(response);
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<DayProduct>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<MenuProduct>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductsByMenu")]
-    public async Task<OneOf<ResponseErrorDto, List<DayProduct>>> GetCantneeProductsByMenu(Menu dayMenu)
+    public async Task<IActionResult> GetCantneeProductsByMenu(Menu dayMenu)
     {
         var result = await _productServices.GetCantneeProductsByMenu(dayMenu);
 
         if (result.TryPickT0(out var error, out var response))
         {
-            return error;
+            return BadRequest(error);
         }
 
-        _logger.LogInformation($"All CantneeProduct of menu {dayMenu.Id} form establishment {dayMenu.IdEstablishment} found correctly");
+        _logger.LogInformation($"All CantneeProduct of menu {dayMenu.Id} form establishment {dayMenu.EstablishmentId} found correctly");
 
-        return response;
+        return Ok(response);
     }
 }

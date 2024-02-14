@@ -1,13 +1,13 @@
 using Canteen.DataAccess;
 
-namespace Canteen.Services;
+namespace Canteen.Services.Services;
 
 public class CustomServiceBase
 {
-    protected readonly EntitiesContext context;
+    protected readonly EntitiesContext _context;
 
     public CustomServiceBase(EntitiesContext context)
     {
-        this.context = context;
+        this._context = context;
     }
 }

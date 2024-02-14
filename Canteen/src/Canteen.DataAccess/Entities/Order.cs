@@ -24,4 +24,5 @@ public class Order : IAuditableEntity
     public decimal DeliveryTotalDiscount { get; set; }
 
     public ICollection<Request>? Requests { get; set; }
+    public int UserId { get; set; }
 }

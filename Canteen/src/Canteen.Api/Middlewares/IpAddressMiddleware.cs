@@ -1,9 +1,8 @@
-using System.Threading.Tasks;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
+using Canteen.Services.IpAdress;
 using Serilog.Context;
 
-namespace CompraTodayApi.Middlewares;
+namespace Canteen.Middlewares;
 
 public class IpAddressMiddleware : IMiddleware
 {

@@ -1,7 +1,8 @@
+
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Identity.UI.Services;
+using Canteen.Services.EmailServices;
 using Microsoft.VisualBasic.CompilerServices;
 
 namespace Canteen.Middlewares;
@@ -19,8 +20,8 @@ class GlobalErrorHandlerMiddleware
         IHostEnvironment hostEnvironment,
         ILogger<GlobalErrorHandlerMiddleware> logger,
         IConfiguration configuration,
-        IEmailSender emailSender,
-        Utils utils)
+        IEmailSender emailSender)
+        //Utils utils)
     {
         this.next = next;
         this.logger = logger;

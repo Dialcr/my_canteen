@@ -1,6 +1,6 @@
 ﻿namespace Canteen.DataAccess.Entities;
 
-public class DayProduct
+public class MenuProduct
 {
     [Key]
     public int Id { get; set; }
@@ -19,4 +19,7 @@ public class DayProduct
 
     [ForeignKey(nameof(MenuId))]
     public Menu? Menu { get; set; }
+
+    [Required]
+    public decimal Price { get; set; }
 }

@@ -3,7 +3,7 @@
 public class DayMenuDto
 {
     public int Id { get; set; }
-    public List<ProductDayDto> ProductsDay { get; set; } = Enumerable.Empty<ProductDayDto>();
+    public IEnumerable<ProductDayDto> ProductsDay { get; set; } = Enumerable.Empty<ProductDayDto>();
     public DateTime Date { get; set; }
     public int EstablishmentId { get; set; }
 }

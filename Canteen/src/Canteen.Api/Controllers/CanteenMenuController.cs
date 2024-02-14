@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
@@ -21,7 +22,8 @@ public class CanteenMenuController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(Menu), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentDate(
+    [Route("getMenuByEstablishmentAndDate")]
+    public IActionResult GetMenuByEstablishmentDate(
         int idEstablishment,
         DateTime date)
     {
@@ -31,11 +33,11 @@ public class CanteenMenuController : ControllerBase
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
-            return error;
+            return BadRequest(error);
         }
 
         _logger.LogInformation($"Menu from establishment {idEstablishment} in date {date}found correctly");
 
-        return response;
+        return Ok(response);
     }
 }

@@ -1,6 +1,7 @@
 using Canteen.DataAccess;
+using Canteen.Services.Dto;
 
-namespace Canteen.Services;
+namespace Canteen.Services.Services;
 
 public class EstablishmentService : CustomServiceBase
 {

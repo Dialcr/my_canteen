@@ -1,7 +1,8 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CompraTodayApi.Controllers.Canteen;
+namespace Canteen.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -32,7 +33,7 @@ public class CanteenRequestController : ControllerBase
     {
         var result = _requestServices.RequestsList(userId);
 
-        if (result.TryPickT0(out var error, out var response))
+        if (result.Result.TryPickT0(out var error, out var response))
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return BadRequest(error);
@@ -47,11 +48,11 @@ public class CanteenRequestController : ControllerBase
     [ProducesResponseType(typeof(List<Request>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getHistoryRequests")]
-    public ActionResult<OneOf<ResponseErrorDto, List<Request>>> GetHistoryRequests(int userId)
+    public IActionResult GetHistoryRequests(int userId)
     {
         var result = _requestServices.HistoryRequest(userId);
 
-        if (result.TryPickT0(out var error, out var response))
+        if (result.Result.TryPickT0(out var error, out var response))
         {
 
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
@@ -69,7 +70,7 @@ public class CanteenRequestController : ControllerBase
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status400BadRequest)]
     [Route("moveRequest")]
-    public async Task<ActionResult<OneOf<ResponseErrorDto, List<Product>, Request>>> MoveRequest(int requestId, DateTime moveDate)
+    public async Task<IActionResult> MoveRequest(int requestId, DateTime moveDate)
     {
         var result = await _requestServices.MoveRequest(requestId, moveDate);
 
@@ -90,6 +91,8 @@ public class CanteenRequestController : ControllerBase
 
     [HttpPost]
     [Route("makeARequest")]
+    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> MakeARequest([FromForm] RequestDto requestDto)
     {
         var result = await _requestServices.AddProductsToRequest(requestDto.RequestId, requestDto.ProductIds, requestDto.DateTime);
@@ -104,7 +107,10 @@ public class CanteenRequestController : ControllerBase
         return Ok(request);
     }
 
-    [HttpPut("{requestId}")]
+    [HttpPut]
+    [Route("editRequest")]
+    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EditRequest(int requestId, [FromBody] EditRequestDto requestDto)
     {
         var deliveryDate = requestDto.DeliveryDate;
@@ -130,11 +136,12 @@ public class CanteenRequestController : ControllerBase
     [HttpPost("{requestId}/plan")]
     public async Task<IActionResult> PlanningRequest(
         int requestId,
+        
         [FromBody] PlanningRequestDto planningRequestDto)
     {
-        var newDate = planningRequestDto.NewDateTime;
-
-        var result = await _requestServices.PlanningRequest(requestId, newDate);
+        
+        var result = await _requestServices.PlanningRequest(requestId, planningRequestDto.EstablishmentId, 
+            planningRequestDto.NewDateTime);
 
         return result.Match<IActionResult>(
             request =>
@@ -154,7 +161,7 @@ public class CanteenRequestController : ControllerBase
     [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getRequest")]
-    public ActionResult<OneOf<ResponseErrorDto, List<Request>>> GetRequest(int requestId)
+    public IActionResult GetRequest(int requestId)
     {
         var result = _requestServices.GetRequerstInfoById(requestId);
 
@@ -177,7 +184,7 @@ public class CanteenRequestController : ControllerBase
     [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("cancelRequest")]
-    public async Task<ActionResult<OneOf<ResponseErrorDto, Request>>> CancelRequest(int requestId)
+    public async Task<IActionResult> CancelRequest(int requestId)
     {
         var result = await _requestServices.CancelRequest(requestId);
 

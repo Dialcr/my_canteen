@@ -4,5 +4,5 @@ public class EditRequestDto
 {
     public DateTime DeliveryDate { get; set; }
     public string DeliveryLocation { get; set; } = "";
-    public List<ProductDayDto> Products { get; set; }
+    public List<MenuProductInypodDto> Products { get; set; }
 }

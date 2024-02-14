@@ -1,7 +1,8 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CompraTodayApi.Controllers.Canteen;
+namespace Canteen.Controllers;
 [ApiController]
 [Route("Canteen/[controller]")]
 public class CanteenStablishmentController : ControllerBase
@@ -21,7 +22,7 @@ public class CanteenStablishmentController : ControllerBase
     [Route("getAllsEstablishments")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> GetAllSEstablishments()
+    public async Task<IActionResult> GetAllSEstablishments()
     {
         var establishments = await _establishmentService.GetAllEstablishmentsAsync();
 
@@ -41,7 +42,7 @@ public class CanteenStablishmentController : ControllerBase
     [Route("getEstablishmentById")]
     [ProducesResponseType(typeof(Establishment), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> GetEstablishmentById(int id)
+    public async Task<IActionResult> GetEstablishmentById(int id)
     {
         var stablish = await _establishmentService.GetEstablishmentById(id);
 

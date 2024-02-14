@@ -1,4 +1,4 @@
-namespace Canteen.Services;
+namespace Canteen.Services.Dto;
 
 public class ResponseErrorDto
 {

@@ -6,7 +6,7 @@ public class Request
     public int Id { get; set; }
 
     [Required]
-    public int OrderId { get; set; }
+    public int? OrderId { get; set; }
 
     [ForeignKey(nameof(OrderId))]
     public Order? Order { get; set; }
@@ -24,8 +24,9 @@ public class Request
     public string DeliveryLocation { get; set; }
 
     public decimal TotalAmount { get; set; }
+    public decimal DeliveryAmount { get; set; }
 
-    public ICollection<Product>? Products { get; set; }
+    public ICollection<RequestProduct>? RequestProducts { get; set; }
 
     [MaxLength(25)]
     public string Status { get; set; }
