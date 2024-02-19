@@ -10,17 +10,20 @@ public class RequestServices : CustomServiceBase
     private readonly ILogger<RequestServices> _logger;
     private readonly ProductServices _services;
     private readonly MenuServices _menuServices;
+    private readonly CanteenOrderServices _orderServices;
+    
 
     public RequestServices(
         EntitiesContext context,
         ILogger<RequestServices> logger,
         ProductServices services,
-        MenuServices menuServices)
+        MenuServices menuServices, CanteenOrderServices orderServices)
         : base(context)
     {
         _logger = logger;
         _services = services;
         _menuServices = menuServices;
+        _orderServices = orderServices;
     }
 
     public async Task<OneOf<ResponseErrorDto, Request>> AddProductsToRequest(
@@ -277,6 +280,9 @@ public class RequestServices : CustomServiceBase
 
         request.DeliveryDate = deliveryDate;
         request.DeliveryLocation = deliveryLocation;
+        await _orderServices.UpdateTotals(request.OrderId!.Value);
+        await _orderServices.ApplyDiscountToOrder(request.OrderId!.Value);
+        request.TotalAmount = request.RequestProducts.Sum(x=>x.Product.Price);
         await _context.SaveChangesAsync();
 
         return request;
@@ -357,7 +363,12 @@ public class RequestServices : CustomServiceBase
             }
         }
         _context.Requests.Add(newRequest);
-        //todo: actualizar el total amount de la orden
+        var order = await _context.Orders.FirstOrDefaultAsync(x=>x.Id==request.OrderId);
+        order!.PrductsTotalAmount += newRequest.TotalAmount;
+        order.DeliveryTotalAmount += newRequest.DeliveryAmount;
+        
+        await _orderServices.ApplyDiscountToOrder(request.OrderId!.Value);
+        
         await _context.SaveChangesAsync();
 
         return newRequest;
@@ -444,48 +455,38 @@ public class RequestServices : CustomServiceBase
 
     public async Task<OneOf<ResponseErrorDto, Request>> CancelRequest(int requestId)
     {
-        var response = _context.Requests.Include(x => x.Order)
+        var request = _context.Requests.Include(x => x.Order)
             .Include(x => x.RequestProducts)
             .Include(x => x.Order)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
                 x.Status.Equals(RequestStatus.Planned.ToString()));
 
-        if (response is not null)
+        if (request is not null)
         {
-            response.Status = RequestStatus.Cancelled.ToString();
+            request.Status = RequestStatus.Cancelled.ToString();
 
             Menu originDayMenu = _context.Menus
                 .Include(x=>x.MenuProducts)
-                .SingleOrDefault(x => x.Date == response.DeliveryDate! && x.EstablishmentId == response.Order!.EstablishmentId)!;
+                .SingleOrDefault(x => x.Date == request.DeliveryDate! && x.EstablishmentId == request.Order!.EstablishmentId)!;
             foreach (var dayProduct in originDayMenu.MenuProducts!)
             {
             
                 //if (response.RequestProducts.Contains(dayProduct.CanteenProductId)) dayProduct.Quantity--;
-                var requestproduct = response.RequestProducts!.FirstOrDefault(x =>
+                var requestproduct = request.RequestProducts!.FirstOrDefault(x =>
                     x.ProductId == dayProduct.CanteenProductId);
                 if ( requestproduct is not null)
                 {
                     dayProduct.Quantity += requestproduct.Quantity;
                 }
             };
-
-            //todo: hacer el descuento del dinero en la orden
-            ///summaray
-            /// hace falta descontar un porciento del dinero que debe definir negocio en la orden
-            /// se debe llamar al metodo de calcular y setear el pago de la orden
-            /*
-            response.Products.ForEach(x =>
-            {
-                var originProduct = originDayMenu.ProductsDay.SingleOrDefault(y => x.Id == y.Product.Id);
-                originProduct!.Cantity++;
-            });
-            var negocio = retunrs.SingleOrDefault(x=>x.EstablishmentId == response.Order.IdEstablishment);
-            var moneyReturn = response.TotalAmount * negocio.ReturnsProcent;
-            */
-            //todo: si en la orden a la que pertenece la request no tiene mas request en estado diferente  canceled cancelar la orden
+            
+            await _orderServices.UpdateTotals(request.OrderId!.Value);
+            await _orderServices.ApplyDiscountToOrder(request.OrderId!.Value);
+            await _orderServices.CloseOrderIfAllRequestsClosed(request.OrderId.Value);
+            
             await _context.SaveChangesAsync();
-            return response;
+            return request;
         }
 
         return new ResponseErrorDto()
@@ -498,10 +499,10 @@ public class RequestServices : CustomServiceBase
 
     public async Task<OneOf<ResponseErrorDto, IEnumerable<Product>, Request>> MoveRequest(
         int requestId,
-        DateTime NewDeliveryDate)
+        DateTime newDeliveryDate)
     {
         var request = _context.Requests
-            .Include(x => x.RequestProducts).ThenInclude(requestProduct => requestProduct.Product)
+            .Include(x => x.RequestProducts)!.ThenInclude(requestProduct => requestProduct.Product)
             .Include(x => x.Order)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
@@ -518,7 +519,7 @@ public class RequestServices : CustomServiceBase
         }
 
         var menuChangeDayResult = _menuServices.GetMenuByEstablishmentAndDate(request.Order.EstablishmentId
-            , NewDeliveryDate);
+            , newDeliveryDate);
 
         if (menuChangeDayResult.TryPickT0(out var error1, out var menuChangeDay))
         {
@@ -569,7 +570,7 @@ public class RequestServices : CustomServiceBase
             }
         };
 
-        request.DeliveryDate = NewDeliveryDate;
+        request.DeliveryDate = newDeliveryDate;
         request.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
 
@@ -578,10 +579,10 @@ public class RequestServices : CustomServiceBase
 
     public OneOf<ResponseErrorDto, Request> GetRequerstInfoById(int requestId)
     {
-        //todo: ordenar bien los productos por categoria
         var request = _context.Requests
-            .Include(x => x.RequestProducts!.OrderByDescending(y => y.Product.Category)
-                .ThenBy(z => z.Product))
+            //.Include(x => x.RequestProducts!.OrderByDescending(y => y.Product.Category)
+            .Include(x => x.RequestProducts!.OrderBy(y => Enum.Parse<ProductCategory>(y.Product.Category))  
+            .ThenBy(z => z.Product))
             .SingleOrDefault(x => x.Id == requestId);
 
         if (request is not null)

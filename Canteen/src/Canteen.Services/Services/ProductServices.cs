@@ -1,5 +1,8 @@
-﻿using Canteen.DataAccess;
+﻿using System.Collections;
+using Canteen.DataAccess;
 using Canteen.Services.Dto;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Canteen.Services.Services;
 
@@ -65,27 +68,10 @@ public class ProductServices : CustomServiceBase
     }
     
 
-    public async Task<OneOf<ResponseErrorDto, List<Product>>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
+    public IQueryable<Product> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {
-        throw new NotImplementedException();
-        /*todo:quitar este comenntario
-        var result = await _context.Products
-            .Where(x => x.DietaryRestrictions.Contains(dietaryRestriction))
-            .ToListAsync();
-
-
-        if (result is null)
-        {
-            return new ResponseErrorDto()
-            {
-                Status = 404,
-
-                Title = "Products not found",
-                Detail = $"The product with dietary restriction {dietaryRestriction} has not been found"
-            };
-        }
-
+        var result =  _context.Products
+                .Where(x => x.DietaryRestrictions!.Any(y => y.Description == dietaryRestriction));
         return result;
-            */
     }
 }

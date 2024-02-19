@@ -2,7 +2,6 @@
 
 public class Product
 {
-    //todo agregar imagen al pedido
     [Key] public int Id { get; set; }
 
     [MaxLength(100)] public string Name { get; set; }
@@ -21,5 +20,7 @@ public class Product
     public ICollection<DietaryRestriction>? DietaryRestrictions { get; set; }
     //public ICollection<string>? Ingredients { get; set; }
     public string Ingredients { get; set; }
+    
+    public ICollection<ProductImageUrl>? ImagesUrl { get; set; }
 
 }

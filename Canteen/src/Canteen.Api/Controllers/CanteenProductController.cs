@@ -67,16 +67,27 @@ public class CanteenProductController : ControllerBase
     {
         var result = _productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
 
-        if (result.Result.TryPickT0(out var error, out var response))
+        /*
+         if (result.TryPickT0(out var error, out var response))
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
             return BadRequest(error);
         }
+        */
+        if (!result.Any())
+        {
+            return BadRequest(new ResponseErrorDto()
+            {
+                Status = 404,
 
+                Title = "Products not found",
+                Detail = $"The product with dietary restriction {dietaryRestriction} has not been found"
+            });
+        }
         _logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
 
-        return Ok(response);
+        return Ok(result);
     }
 
     [HttpGet]

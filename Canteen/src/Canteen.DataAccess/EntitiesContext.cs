@@ -19,8 +19,11 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     public DbSet<MenuProduct> MenuProducts { get; set; }
     
     public DbSet<DataProtectionKey> DataProtectionKeys { get; }
+    public DbSet<ProductImageUrl> ProductImageUrls { get; set; }
+    public DbSet<Discount> Discounts { get; set; }
     public DbSet<KeyValueData> KeyValueData { get; set; }
     public DbSet<KeyValueData> DietaryRestrictions { get; set; }
+    
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,5 +52,12 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         modelBuilder.Entity<Product>()
             .HasMany(x=>x.DietaryRestrictions)
             .WithMany(x=>x.Products);
+
+        modelBuilder.Entity<Product>()
+            .HasMany(x => x.ImagesUrl);
+        
+        modelBuilder.Entity<Discount>()
+            .HasOne(x=>x.Establishment)
+            .WithMany(x=>Discounts);
     }
 }

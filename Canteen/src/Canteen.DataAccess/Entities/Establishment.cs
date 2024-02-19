@@ -19,4 +19,6 @@ public class Establishment
     public ICollection<Product>? Products { get; set; }
 
     public ICollection<Menu>? Menus { get; set; }
+
+    public ICollection<Discount> Discounts { get; set; }
 }
