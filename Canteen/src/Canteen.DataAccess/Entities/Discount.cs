@@ -14,8 +14,9 @@ public class Discount
     public int EstablishmentId { get; set; }
     
     [ForeignKey(nameof(EstablishmentId))]
-    public Establishment Establishment { get; set; }
+    public Establishment? Establishment { get; set; }
 
+    [MaxLength(50)]
     public string DiscountType { get; set; }
     
 }

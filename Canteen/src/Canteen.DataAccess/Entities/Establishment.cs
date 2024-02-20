@@ -20,5 +20,5 @@ public class Establishment
 
     public ICollection<Menu>? Menus { get; set; }
 
-    public ICollection<Discount> Discounts { get; set; }
+    public ICollection<Discount>? Discounts { get; set; }
 }

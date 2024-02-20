@@ -58,6 +58,6 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         
         modelBuilder.Entity<Discount>()
             .HasOne(x=>x.Establishment)
-            .WithMany(x=>Discounts);
+            .WithMany(x=>x.Discounts);
     }
 }
