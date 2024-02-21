@@ -11,19 +11,21 @@ public class RequestServices : CustomServiceBase
     private readonly ProductServices _services;
     private readonly MenuServices _menuServices;
     private readonly CanteenOrderServices _orderServices;
+    private readonly CartServices _cartServices;
     
 
     public RequestServices(
         EntitiesContext context,
         ILogger<RequestServices> logger,
         ProductServices services,
-        MenuServices menuServices, CanteenOrderServices orderServices)
+        MenuServices menuServices, CanteenOrderServices orderServices, CartServices cartServices)
         : base(context)
     {
         _logger = logger;
         _services = services;
         _menuServices = menuServices;
         _orderServices = orderServices;
+        _cartServices = cartServices;
     }
 
     public async Task<OneOf<ResponseErrorDto, Request>> AddProductsToRequest(
@@ -107,42 +109,36 @@ public class RequestServices : CustomServiceBase
     }
 
     public async Task<OneOf<ResponseErrorDto, Request>> CreateRequest(
-        int userId,
-        DateTime deliveryDate,
-        string deliveryLocation,
-        List<RequestProduct> requestProducts
-        ,int establishmentId
-        ,decimal deliveryAmount)
+        RequestIntpudDto requestIntpudDto,
+        int userId)
     {
-        var order = new Order
+        var cart = new CanteenCart()
         {
             CreatedAt = DateTime.Now,
-            Status = OrderStatus.Created,
             UserId = userId,
             Requests = new List<Request>(),
-            EstablishmentId = establishmentId!
+            EstablishmentId = requestIntpudDto.EstablishmentId
             
             
         };
 
-        if (establishmentId != 0)
+        if (requestIntpudDto.EstablishmentId != 0)
         {
-            order = _context.Orders.FirstOrDefault(x => x.EstablishmentId == establishmentId 
-                                                        && x.Status == OrderStatus.Created
+            cart = _context.Carts.FirstOrDefault(x => x.EstablishmentId == requestIntpudDto.EstablishmentId 
                                                         && x.UserId==userId);
-            if (order is null)
+            if (cart is null)
             {
                 return new ResponseErrorDto()
                 {
                     Status = 404,
-                    Title = "Order not found",
-                    Detail = $"The order with id {establishmentId} has not found with status {OrderStatus.Created}"
+                    Title = "Cart not found",
+                    Detail = $"The cart with id {requestIntpudDto.EstablishmentId} has not found with status"
                 };
             }
         }
         else
         {
-            _context.Orders.Add(order);
+            _context.Carts.Add(cart);
             
         }
 
@@ -150,15 +146,15 @@ public class RequestServices : CustomServiceBase
         {
             UserId = userId,
             CreatedAt = DateTime.Now,
-            DeliveryDate = deliveryDate,
-            DeliveryLocation = deliveryLocation,
-            TotalAmount = requestProducts.Sum(x=>x.Product.Price),
-            DeliveryAmount = deliveryAmount,
-            OrderId = order.Id,
+            DeliveryDate = requestIntpudDto.DeliveryDate,
+            DeliveryLocation = requestIntpudDto.DeliveryLocation,
+            TotalAmount = requestIntpudDto.RequestProducts.Sum(x=>x.Product.Price),
+            DeliveryAmount =requestIntpudDto.DeliveryAmount,
+            Status = RequestStatus.Planned
         };
         
-        order.Requests!.Add(request);
-        _context.Orders.Add(order);
+        cart.Requests!.Add(request);
+        //_context.Carts.Add(cart);
         //_context.Requests.Add(request);
         await _context.SaveChangesAsync();
 
@@ -169,7 +165,7 @@ public class RequestServices : CustomServiceBase
         int requestId,
         DateTime deliveryDate,
         string deliveryLocation,
-        List<MenuProductInypodDto> productDayDtos)
+        ICollection<MenuProductInypodDto> productDayDtos)
     {
        
         var request = await _context.Requests
@@ -203,20 +199,8 @@ public class RequestServices : CustomServiceBase
         
         foreach (var product in productDayDtos)
         {
-            //var existingProduct = request.Products.FirstOrDefault(p => p.Id == product.Product.Id);
             var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
 
-            /*
-            if (existingProduct is null)
-            {
-                return new ResponseErrorDto
-                {
-                    Status = 400,
-                    Title = "Invalid product",
-                    Detail = $"The product with id {product.Product.Id} is not associated with the request"
-                };
-            }
-            */
             var aviableProduct = _context.MenuProducts.SingleOrDefault(x=>x.Id == product.MenuProductId);
             if (aviableProduct is null)
             {
@@ -288,7 +272,119 @@ public class RequestServices : CustomServiceBase
         return request;
     }
 
-    public async Task<OneOf<ResponseErrorDto, Request>> PlanningRequest(
+    public async Task<OneOf<ResponseErrorDto, Request>> EditRequestIntoCart(
+        int requestId,
+        DateTime deliveryDate,
+        string deliveryLocation,
+        ICollection<MenuProductInypodDto> productDayDtos)
+    {
+       
+        var request = await _context.Requests
+            .Include(r => r.RequestProducts)!
+            .ThenInclude(requestProduct => requestProduct.Product)
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        if (request is null)
+        {
+            return new ResponseErrorDto
+            {
+                Status = 404,
+                Title = "Request not found",
+                Detail = $"The request with id {requestId} was not found"
+            };
+        }
+
+        
+        if (!request.Status.Equals(RequestStatus.Planned))
+        {
+            return new ResponseErrorDto
+            {
+                Status = 400,
+                Title = "Invalid request status",
+                Detail = "The request status has changed and cannot be edited"
+            };
+        }
+
+        //var originalProducts = request.Products.ToList();
+        request.RequestProducts ??= new List<RequestProduct>();
+        var originalProducts = request.RequestProducts;
+        
+        foreach (var product in productDayDtos)
+        {
+            var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
+
+            var aviableProduct = _context.MenuProducts.SingleOrDefault(x=>x.Id == product.MenuProductId);
+            if (aviableProduct is null)
+            {
+                return new ResponseErrorDto()
+                {
+                    Status = 404,
+                    Title = "Product not found",
+                    Detail = $"The product with id {product.Product.Id} has not been found"
+                };
+            }
+            if (existingProduct is not null)
+            {
+                //Aqui debo modificar la cantidad de un producto en que ya estaba en el pedido
+                if (product.Quantity < existingProduct.Quantity && product.Quantity!=0)
+                {
+                    existingProduct.Quantity = product.Quantity;
+                    aviableProduct.Quantity += existingProduct.Quantity - product.Quantity;
+                }
+                else if (product.Quantity > existingProduct.Quantity && product.Quantity- existingProduct.Quantity<=aviableProduct.Quantity 
+                                                                     && product.Quantity!=0)
+                {
+                    existingProduct.Quantity = product.Quantity;
+                    aviableProduct.Quantity -= product.Quantity-existingProduct.Quantity ;
+                }
+                else
+                {
+                    return new ResponseErrorDto
+                    {
+                        Status = 400,
+                        Title = "Insufficient stock",
+                        Detail = $"The product with id {product.Product.Id} does not have sufficient stock"
+                    };
+                }
+                
+            }
+            else
+            {
+                //Esto es para agregar un nuevo producto al pedido 
+                //if (product.Quantity > availableProduct.AsT1.Quantity)
+                if (product.Quantity > aviableProduct.Quantity)
+                {
+                    return new ResponseErrorDto
+                    {
+                        Status = 400,
+                        Title = "Insufficient stock",
+                        Detail = $"The product with id {product.Product.Id} does not have sufficient stock"
+                    };
+                }
+
+                //descuenta la cantidad del producto
+                aviableProduct.Quantity -= product.Quantity;
+                //agrega la cantidad al pedido
+                request.RequestProducts.Add(new RequestProduct()
+                {
+                    ProductId = product.ProductId,
+                    RequestId = request.Id,
+                    Quantity = product.Quantity
+                });
+            }
+        }
+
+        request.DeliveryDate = deliveryDate;
+        request.DeliveryLocation = deliveryLocation;
+        request.TotalAmount = request.RequestProducts.Sum(x=>x.Product.Price);
+        await _cartServices.UpdateTotals(request.OrderId!.Value);
+        await _cartServices.ApplyDiscountToCart(request.OrderId!.Value);
+        await _context.SaveChangesAsync();
+
+        return request;
+    }
+
+    public async Task<OneOf<ResponseErrorDto, Request>> PlanningRequestIntoOrder(
         int requestId,
         int establishmentId,
         DateTime newDateTime)
@@ -373,7 +469,103 @@ public class RequestServices : CustomServiceBase
 
         return newRequest;
     }
+    public async Task<OneOf<ResponseErrorDto, Request>> PlanningRequestIntoCart(
+        int requestId,
+        int establishmentId,
+        DateTime newDateTime
+        ,int cartId)
+    {
+        var cart = await _context.Carts
+            .Include(x => x.Requests)!
+            .ThenInclude(x => x.RequestProducts)
+            .FirstOrDefaultAsync(x => x.Id == cartId );
+        if (cart is null)
+        {
+            return new ResponseErrorDto()
+            {
+                Status = 404,
+                Title = "Cart not found",
+                Detail = $"The cart with id {cartId} was not found"
+            };
+        }
+        var request = cart.Requests!
+            .FirstOrDefault(r => r.Id == requestId);
 
+        if (request is null)
+        {
+            return new ResponseErrorDto
+            {
+                Status = 404,
+                Title = "Request not found",
+                Detail = $"The request with id {requestId} was not found"
+            };
+        }
+
+        if (!request.Status.Equals(RequestStatus.Planned))
+        {
+            return new ResponseErrorDto
+            {
+                Status = 400,
+                Title = "Invalid request status",
+                Detail = "The request status has changed and cannot be planned"
+            };
+        }
+
+        var dayMenuResult = _menuServices.GetMenuByEstablishmentAndDate(establishmentId, newDateTime);
+        
+        if (dayMenuResult.IsT1)
+        {
+            return dayMenuResult.AsT0;
+        }
+
+        var dayMenu = dayMenuResult.AsT1;
+
+        //var availableProductsResult =  GetAviableProduct(dayMenu,request);
+        Request newRequest = new Request()
+        {
+            DeliveryDate = newDateTime,
+            DeliveryLocation = request.DeliveryLocation,
+            Status = RequestStatus.Planned,
+            OrderId = request.OrderId,
+            UserId = request.UserId,
+            CreatedAt = DateTimeOffset.Now,
+            TotalAmount = request.TotalAmount,
+            RequestProducts = new List<RequestProduct>()
+        };
+        foreach (var requestProduct in request.RequestProducts!)
+        {
+            var aviableProduct = dayMenu.MenuProducts!.FirstOrDefault(x => x.Product!.Id == requestProduct.ProductId && x.Quantity >= requestProduct.Quantity );
+            if (aviableProduct is null)
+            {
+                return new ResponseErrorDto()
+                {
+                    Status  = 400,
+                    Title = "Insufficient stock",
+                    Detail = $"The product with id {requestProduct.ProductId} does not have sufficient stock"
+                };
+            }
+            else
+            {
+                newRequest.RequestProducts.Add(new RequestProduct()
+                {
+                    ProductId = requestProduct.ProductId,
+                    RequestId = request.Id,
+                    Quantity = requestProduct.Quantity
+                });
+                aviableProduct.Quantity -= requestProduct.Quantity;
+            }
+        }
+        _context.Requests.Add(newRequest);
+        
+        cart!.PrductsTotalAmount += newRequest.TotalAmount;
+        cart.DeliveryTotalAmount += newRequest.DeliveryAmount;
+        
+        await _cartServices.ApplyDiscountToCart(request.OrderId!.Value);
+        
+        await _context.SaveChangesAsync();
+
+        return newRequest;
+    }
     //todo: elimminar este metodo
     private OneOf<ResponseErrorDto, Request> GetAviableProduct(Menu menuDay, Request requestPlanning)
     {
@@ -582,8 +774,8 @@ public class RequestServices : CustomServiceBase
         var request = _context.Requests
             //.Include(x => x.RequestProducts!.OrderByDescending(y => y.Product.Category)
             .Include(x => x.RequestProducts!.OrderBy(y => y.Product.Category)  
-            //.Include(x => x.RequestProducts!.OrderBy(y => Enum.Parse<ProductCategory>(y.Product.Category))  
-            .ThenBy(z => z.Product))
+                //.Include(x => x.RequestProducts!.OrderBy(y => Enum.Parse<ProductCategory>(y.Product.Category))  
+                .ThenBy(z => z.Product))
             .SingleOrDefault(x => x.Id == requestId);
 
         if (request is not null)

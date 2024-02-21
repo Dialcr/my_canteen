@@ -106,6 +106,23 @@ public class CanteenRequestController : ControllerBase
 
         return Ok(request);
     }
+    [HttpPost]
+    [Route("createRequest")]
+    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> CreateRequest([FromForm] RequestIntpudDto requestDto, int userId)
+    {
+        var result = await _requestServices.CreateRequest(requestDto, userId);
+
+        if (result.TryPickT0(out var errorDto, out var request))
+        {
+            _logger.LogError(errorDto.Detail);
+
+            return NotFound(errorDto);
+        }
+
+        return Ok(request);
+    }
 
     [HttpPut]
     [Route("editRequest")]
@@ -140,8 +157,34 @@ public class CanteenRequestController : ControllerBase
         [FromBody] PlanningRequestDto planningRequestDto)
     {
         
-        var result = await _requestServices.PlanningRequest(requestId, planningRequestDto.EstablishmentId, 
+        var result = await _requestServices.PlanningRequestIntoOrder(requestId, planningRequestDto.EstablishmentId, 
             planningRequestDto.NewDateTime);
+
+        return result.Match<IActionResult>(
+            request =>
+            {
+                _logger.LogInformation("Planning Successful");
+                return Ok(request);
+            },
+            error =>
+            {
+                _logger.LogError("Can't be planned");
+                return BadRequest(error);
+            }
+        );
+    }
+    [HttpPost("{requestId}/plan/cart")]
+    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> PlanningRequestCart(
+        int requestId,
+        int cartId,
+        
+        [FromBody] PlanningRequestDto planningRequestDto)
+    {
+        
+        var result = await _requestServices.PlanningRequestIntoCart(requestId, planningRequestDto.EstablishmentId, 
+            planningRequestDto.NewDateTime,cartId);
 
         return result.Match<IActionResult>(
             request =>
@@ -198,4 +241,28 @@ public class CanteenRequestController : ControllerBase
 
         return Ok(response);
     }
+
+    //todo: cam,biar la entradaq del endpoint
+    [HttpPatch]
+    [Route("EditRequestIntoCart")]
+    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EditRequestIntoCart(int requestId,
+        DateTime deliveryDate,
+        string deliveryLocation,
+        ICollection<MenuProductInypodDto> productDayDtos)
+    {
+        var result = await _requestServices.EditRequestIntoCart(requestId,deliveryDate,deliveryLocation,productDayDtos);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+
+        _logger.LogInformation($"Request with id {requestId} canceled correctly");
+
+        return Ok(response);
+    }
+    
 }

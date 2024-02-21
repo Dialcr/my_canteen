@@ -122,7 +122,8 @@ public class CanteenOrderServices : CustomServiceBase
 
     public async Task<OneOf<ResponseErrorDto, Order>> CancelOrder(int orderId)
     {
-        var order = await _context.Orders.Include(x => x.Requests)
+        var order = await _context.Orders.Include(x => x.Requests)!.
+            ThenInclude(request => request.RequestProducts!)
             .FirstOrDefaultAsync(x => x.Id == orderId && x.Status == OrderStatus.Created);
 
         if (order is null)
@@ -135,8 +136,10 @@ public class CanteenOrderServices : CustomServiceBase
             };
 
         }
+        
         foreach (var orderRequest in order.Requests!)
         {
+            
             orderRequest.Status = RequestStatus.Cancelled;
 
             Menu originDayMenu = _context.Menus
@@ -153,7 +156,7 @@ public class CanteenOrderServices : CustomServiceBase
                     dayProduct.Quantity += requestproduct.Quantity;
                 }
             };
-            await _context.SaveChangesAsync();
+           
             return new ResponseErrorDto()
             {
                 Status = 404,
@@ -169,36 +172,32 @@ public class CanteenOrderServices : CustomServiceBase
         await _context.SaveChangesAsync();
         return order;
     }
-
-//este nmetodo creo que no hay qy=ue tenerlo 
-/*
- *
-public OneOf<ResponseErrorDto, Order> CreateOrder(List<Request> requests, int userId, int establishmentId)
-{
-    foreach (var request in requests)
+    
+    public async Task<OneOf<ResponseErrorDto, Order>> CreateOrder(CanteenCart cart)
     {
-        if (request.OrderId is not null ||request.OrderId!=0)
+        if (cart.Requests is null || !cart.Requests.Any())
         {
+            return new ResponseErrorDto()
+            {
 
+            };
         }
+        var newOrder = new Order
+        {
+            CreatedAt = DateTime.Now,
+            Status = OrderStatus.Created,
+            Requests = cart.Requests,
+            EstablishmentId = cart.EstablishmentId,
+            PrductsTotalAmount =  cart.Requests.Sum(x=>x.TotalAmount),
+            DeliveryTotalAmount = cart.Requests.Sum(x=>x.DeliveryAmount),
+            //ProductTotalDiscount = 0,
+            //DeliveryTotalDiscount = 0
+
+        };
+        _context.Orders.Add(newOrder);
+        await _context.SaveChangesAsync();
+        return newOrder;
+
     }
-    var newOrder = new Order
-    {
-        CreatedAt = DateTime.Now,
-        Status = OrderStatus.Created.ToString(),
-        Requests = requests.ToList(),
-        EstablishmentId = establishmentId,
-        PrductsTotalAmount = requests.Sum(x=>x.TotalAmount),
-        DeliveryTotalAmount = requests.Sum(x=>x.DeliveryAmount),
-        //ProductTotalDiscount = 0,
-        //DeliveryTotalDiscount = 0
 
-    };
-    _context.Orders.Add(newOrder);
-    _context.SaveChanges();
-    return newOrder;
-
-}
-
- */
 }
