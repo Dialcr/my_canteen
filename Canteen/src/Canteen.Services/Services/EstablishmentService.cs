@@ -45,4 +45,20 @@ public class EstablishmentService : CustomServiceBase
 
         return establish;
     }
+    public async Task<OneOf<ResponseErrorDto, IQueryable<Establishment>>> GetAllEstablishment()
+    {
+        var establish = _context.Establishments;
+            
+        if (!establish.Any())
+        {
+            return new ResponseErrorDto
+            {
+                Status = 404,
+                Title = "Have not any establishment",
+                Detail = "Have not any establishment"
+            };
+        }
+
+        return establish;
+    }
 }

@@ -56,4 +56,22 @@ public class CanteenStablishmentController : ControllerBase
 
         return Ok(establishment);
     }
+    [HttpGet]
+    [Route("getAllEstablishment")]
+    [ProducesResponseType(typeof(IQueryable<Establishment>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAllEstablishment()
+    {
+        var stablish = await _establishmentService.GetAllEstablishment();
+
+        if (stablish.TryPickT0(out var error, out var establishment))
+        {
+            _logger.LogError(error.Detail);
+            return NotFound();
+        }
+
+        _logger.LogInformation("Establishments found correctly");
+
+        return Ok(establishment);
+    }
 }
