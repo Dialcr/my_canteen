@@ -86,6 +86,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ProductServices, ProductServices>();
         services.AddScoped<RequestServices, RequestServices>();
         services.AddScoped<IpAddressServices, IpAddressServices>();
+        services.AddScoped<CartServices, CartServices>();
         
         return services;
     }

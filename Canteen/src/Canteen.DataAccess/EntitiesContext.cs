@@ -23,7 +23,8 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     public DbSet<Discount> Discounts { get; set; }
     public DbSet<KeyValueData> KeyValueData { get; set; }
     public DbSet<KeyValueData> DietaryRestrictions { get; set; }
-    
+
+    public DbSet<CanteenCart> Carts { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,5 +60,8 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         modelBuilder.Entity<Discount>()
             .HasOne(x=>x.Establishment)
             .WithMany(x=>x.Discounts);
+        
+        modelBuilder.Entity<CanteenCart>()
+            .HasMany(x=>x.Requests);
     }
 }
