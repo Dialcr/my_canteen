@@ -28,15 +28,14 @@ public class CanteenOrderServices : CustomServiceBase
             };
         }
 
-        var totalDiscount = _context.Discounts.Where(x => x.Establishment.Id == order.EstablishmentId
-                                                          && x.DiscountType.Equals(DiscountType.TotalAmount.ToString())
+        var totalDiscount = _context.Discounts.Where(x => x.Establishment!.Id == order.EstablishmentId
+                                                          && x.DiscountType.Equals(DiscountType.TotalAmount)
                                                           && order.PrductsTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
 
-        var delivaryDiscount = _context.Discounts.Where(x => x.Establishment.Id == order.EstablishmentId
-                                                             && x.DiscountType.Equals(DiscountType.DeliveryAmount
-                                                                 .ToString())
+        var delivaryDiscount = _context.Discounts.Where(x => x.Establishment!.Id == order.EstablishmentId
+                                                             && x.DiscountType.Equals(DiscountType.DeliveryAmount)
                                                              && order.DeliveryTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
@@ -82,9 +81,9 @@ public class CanteenOrderServices : CustomServiceBase
                 Detail = $"The order with id {orderId} has not found"
             };
         }
-        order.PrductsTotalAmount = order.Requests!.Where(x => x.Status == RequestStatus.Planned.ToString())
+        order.PrductsTotalAmount = order.Requests!.Where(x => x.Status == RequestStatus.Planned)
             .Sum(x => x.TotalAmount);
-        order.DeliveryTotalAmount = order.Requests!.Where(x => x.Status == RequestStatus.Planned.ToString())
+        order.DeliveryTotalAmount = order.Requests!.Where(x => x.Status == RequestStatus.Planned)
             .Sum(x => x.DeliveryAmount);
         await _context.SaveChangesAsync();
         return order;
@@ -94,7 +93,7 @@ public class CanteenOrderServices : CustomServiceBase
     public async Task<OneOf<ResponseErrorDto, Order>> CloseOrderIfAllRequestsClosed(int orderId)
     {
         var order = await _context.Orders.Include(o => o.Requests)
-            .FirstOrDefaultAsync(o => o.Id == orderId && o.Status == OrderStatus.Created.ToString());
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.Status == OrderStatus.Created);
 
         if (order == null)
         {
@@ -106,15 +105,15 @@ public class CanteenOrderServices : CustomServiceBase
             };
         }
         //si todas estan en estado cancelada la orden se cancela
-        if (order.Requests!.All(r => r.Status == RequestStatus.Cancelled.ToString()))
+        if (order.Requests!.All(r => r.Status == RequestStatus.Cancelled))
         {
-            order.Status = OrderStatus.Cancelled.ToString();
+            order.Status = OrderStatus.Cancelled;
         }
         // si todas estan entregadas o canceladas la orden se cierra
-        else if (order.Requests!.All(r => r.Status == RequestStatus.Delivered.ToString() 
-                                          || r.Status == RequestStatus.Cancelled.ToString()))
+        else if (order.Requests!.All(r => r.Status == RequestStatus.Delivered 
+                                          || r.Status == RequestStatus.Cancelled))
         {
-            order.Status = OrderStatus.Close.ToString();
+            order.Status = OrderStatus.Close;
         }
         await _context.SaveChangesAsync();
 
@@ -124,7 +123,7 @@ public class CanteenOrderServices : CustomServiceBase
     public async Task<OneOf<ResponseErrorDto, Order>> CancelOrder(int orderId)
     {
         var order = await _context.Orders.Include(x => x.Requests)
-            .FirstOrDefaultAsync(x => x.Id == orderId && x.Status == OrderStatus.Created.ToString());
+            .FirstOrDefaultAsync(x => x.Id == orderId && x.Status == OrderStatus.Created);
 
         if (order is null)
         {
@@ -138,7 +137,7 @@ public class CanteenOrderServices : CustomServiceBase
         }
         foreach (var orderRequest in order.Requests!)
         {
-            orderRequest.Status = RequestStatus.Cancelled.ToString();
+            orderRequest.Status = RequestStatus.Cancelled;
 
             Menu originDayMenu = _context.Menus
                 .Include(x=>x.MenuProducts)
@@ -166,7 +165,7 @@ public class CanteenOrderServices : CustomServiceBase
         await ApplyDiscountToOrder(orderId);
         await CloseOrderIfAllRequestsClosed(orderId);
     
-        order.Status = OrderStatus.Cancelled.ToString();
+        order.Status = OrderStatus.Cancelled;
         await _context.SaveChangesAsync();
         return order;
     }

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Canteen.DataAccess;
+using Canteen.DataAccess.Enums;
 using Canteen.Services.Dto;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -13,7 +14,7 @@ public class ProductServices : CustomServiceBase
     {
     }
 
-    public async Task<OneOf<ResponseErrorDto, List<Product>>> GetCantneeProductsByCategory(string categoryProduct)
+    public async Task<OneOf<ResponseErrorDto, List<Product>>> GetCantneeProductsByCategory(ProductCategory categoryProduct)
     {
         var result = await _context.Products.Where(x => x.Category == categoryProduct).ToListAsync();
 

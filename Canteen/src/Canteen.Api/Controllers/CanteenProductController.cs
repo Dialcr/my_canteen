@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.DataAccess.Enums;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,7 +44,7 @@ public class CanteenProductController : ControllerBase
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductsByCategory")]
-    public IActionResult GetCantneeProductsByCategory(string categoryProduct)
+    public IActionResult GetCantneeProductsByCategory(ProductCategory categoryProduct)
     {
         var result = _productServices.GetCantneeProductsByCategory(categoryProduct);
 

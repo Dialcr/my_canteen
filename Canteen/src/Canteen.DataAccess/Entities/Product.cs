@@ -1,4 +1,6 @@
-﻿namespace Canteen.DataAccess.Entities;
+﻿using Canteen.DataAccess.Enums;
+
+namespace Canteen.DataAccess.Entities;
 
 public class Product
 {
@@ -8,7 +10,7 @@ public class Product
 
     [MaxLength(255)] public string Description { get; set; }
 
-    [MaxLength(50)] public string Category { get; set; }
+    [MaxLength(50)] public ProductCategory Category { get; set; }
 
     public decimal Price { get; set; }
 

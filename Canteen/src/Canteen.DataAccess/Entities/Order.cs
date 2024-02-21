@@ -1,4 +1,6 @@
-﻿namespace Canteen.DataAccess.Entities;
+﻿using Canteen.DataAccess.Enums;
+
+namespace Canteen.DataAccess.Entities;
 
 public class Order : IAuditableEntity
 {
@@ -12,7 +14,7 @@ public class Order : IAuditableEntity
     public Establishment? Establishment { get; set; }
 
     [MaxLength(50)]
-    public string Status { get; set; }
+    public OrderStatus Status { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }

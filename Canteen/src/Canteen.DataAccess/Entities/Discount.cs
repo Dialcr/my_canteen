@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Canteen.DataAccess.Enums;
 
 namespace Canteen.DataAccess.Entities;
 
@@ -16,7 +17,7 @@ public class Discount
     [ForeignKey(nameof(EstablishmentId))]
     public Establishment? Establishment { get; set; }
 
-    [MaxLength(50)]
-    public string DiscountType { get; set; }
+
+    public DiscountType DiscountType { get; set; }
     
 }

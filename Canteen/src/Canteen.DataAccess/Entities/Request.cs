@@ -1,4 +1,6 @@
-﻿namespace Canteen.DataAccess.Entities;
+﻿using Canteen.DataAccess.Enums;
+
+namespace Canteen.DataAccess.Entities;
 
 public class Request
 {
@@ -29,5 +31,5 @@ public class Request
     public ICollection<RequestProduct>? RequestProducts { get; set; }
 
     [MaxLength(25)]
-    public string Status { get; set; }
+    public RequestStatus Status { get; set; }
 }

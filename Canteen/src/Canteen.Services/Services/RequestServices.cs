@@ -37,7 +37,7 @@ public class RequestServices : CustomServiceBase
             //.ThenInclude(x=>x.Product)
             .SingleOrDefaultAsync(r =>
                 r.Id == requestId &&
-                r.Status.Equals(RequestStatus.Planned.ToString()));
+                r.Status.Equals(RequestStatus.Planned));
 
         if (request is null)
         {
@@ -117,7 +117,7 @@ public class RequestServices : CustomServiceBase
         var order = new Order
         {
             CreatedAt = DateTime.Now,
-            Status = OrderStatus.Created.ToString(),
+            Status = OrderStatus.Created,
             UserId = userId,
             Requests = new List<Request>(),
             EstablishmentId = establishmentId!
@@ -128,7 +128,7 @@ public class RequestServices : CustomServiceBase
         if (establishmentId != 0)
         {
             order = _context.Orders.FirstOrDefault(x => x.EstablishmentId == establishmentId 
-                                                        && x.Status == OrderStatus.Created.ToString()
+                                                        && x.Status == OrderStatus.Created
                                                         && x.UserId==userId);
             if (order is null)
             {
@@ -187,7 +187,7 @@ public class RequestServices : CustomServiceBase
         }
 
         
-        if (!request.Status.Equals(RequestStatus.Planned.ToString()))
+        if (!request.Status.Equals(RequestStatus.Planned))
         {
             return new ResponseErrorDto
             {
@@ -308,7 +308,7 @@ public class RequestServices : CustomServiceBase
             };
         }
 
-        if (!request.Status.Equals(RequestStatus.Planned.ToString()))
+        if (!request.Status.Equals(RequestStatus.Planned))
         {
             return new ResponseErrorDto
             {
@@ -332,7 +332,7 @@ public class RequestServices : CustomServiceBase
         {
             DeliveryDate = newDateTime,
             DeliveryLocation = request.DeliveryLocation,
-            Status = RequestStatus.Planned.ToString(),
+            Status = RequestStatus.Planned,
             OrderId = request.OrderId,
             UserId = request.UserId,
             CreatedAt = DateTimeOffset.Now,
@@ -413,7 +413,7 @@ public class RequestServices : CustomServiceBase
         var requests = await _context.Requests
             .Where(x =>
                 x.UserId == userId &&
-                !x.Status.Equals(RequestStatus.Cancelled.ToString()))
+                !x.Status.Equals(RequestStatus.Cancelled))
             .ToListAsync();
 
         if (requests.Count > 0)
@@ -434,8 +434,8 @@ public class RequestServices : CustomServiceBase
         var requests = await _context.Requests
             .Where(x =>
                 x.UserId == userId &&
-                (x.Status.Equals(RequestStatus.Cancelled.ToString()) ||
-                 x.Status.Equals(RequestStatus.Delivered.ToString())))
+                (x.Status.Equals(RequestStatus.Cancelled) ||
+                 x.Status.Equals(RequestStatus.Delivered)))
             .ToListAsync();
 
         if (requests.Count > 0)
@@ -460,11 +460,11 @@ public class RequestServices : CustomServiceBase
             .Include(x => x.Order)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
-                x.Status.Equals(RequestStatus.Planned.ToString()));
+                x.Status.Equals(RequestStatus.Planned));
 
         if (request is not null)
         {
-            request.Status = RequestStatus.Cancelled.ToString();
+            request.Status = RequestStatus.Cancelled;
 
             Menu originDayMenu = _context.Menus
                 .Include(x=>x.MenuProducts)
@@ -506,7 +506,7 @@ public class RequestServices : CustomServiceBase
             .Include(x => x.Order)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
-                x.Status.Equals(RequestStatus.Planned.ToString()));
+                x.Status.Equals(RequestStatus.Planned));
 
         if (request is null)
         {
@@ -514,7 +514,7 @@ public class RequestServices : CustomServiceBase
             {
                 Status = 404,
                 Title = "Request not found",
-                Detail = $"Request with id {requestId} and status {RequestStatus.Planned.ToString()} not found"
+                Detail = $"Request with id {requestId} and status {RequestStatus.Planned} not found"
             };
         }
 
@@ -581,7 +581,8 @@ public class RequestServices : CustomServiceBase
     {
         var request = _context.Requests
             //.Include(x => x.RequestProducts!.OrderByDescending(y => y.Product.Category)
-            .Include(x => x.RequestProducts!.OrderBy(y => Enum.Parse<ProductCategory>(y.Product.Category))  
+            .Include(x => x.RequestProducts!.OrderBy(y => y.Product.Category)  
+            //.Include(x => x.RequestProducts!.OrderBy(y => Enum.Parse<ProductCategory>(y.Product.Category))  
             .ThenBy(z => z.Product))
             .SingleOrDefault(x => x.Id == requestId);
 
