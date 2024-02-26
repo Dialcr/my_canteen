@@ -32,4 +32,17 @@ public class Request
 
     [MaxLength(25)]
     public RequestStatus Status { get; set; }
+    [Required]
+    public int? CartId { get; set; }
+
+    [ForeignKey(nameof(CartId))]
+    public CanteenCart? Cart { get; set; }
+    
+    //todo: add delivery time types 
+    /*
+     * for example :
+     * desayuno 7am-9am
+     * almuerzo 12pm-2pm
+     * comida 7pm-9pm
+     */
 }

@@ -12,17 +12,18 @@ public class CanteenRequestController : ControllerBase
     readonly MenuServices _menuServices;
     readonly ILogger<CanteenRequestController> _logger;
     readonly CanteenOrderServices _orderServices;
-
+    private readonly CartServices _cartServices;
     public CanteenRequestController(
         ILogger<CanteenRequestController> logger,
         RequestServices requestServices,
         MenuServices menuServices,
-        CanteenOrderServices orderServices)
+        CanteenOrderServices orderServices, CartServices cartServices)
     {
         _requestServices = requestServices;
         _menuServices = menuServices;
         _logger = logger;
         _orderServices = orderServices;
+        _cartServices = cartServices;
     }
 
     [HttpGet]
@@ -72,7 +73,7 @@ public class CanteenRequestController : ControllerBase
     [Route("moveRequest")]
     public async Task<IActionResult> MoveRequest(int requestId, DateTime moveDate)
     {
-        var result = await _requestServices.MoveRequest(requestId, moveDate);
+        var result = await _requestServices.MoveRequestIntoOrder(requestId, moveDate);
 
         if (result.TryPickT0(out var error, out var response))
         {
@@ -134,7 +135,8 @@ public class CanteenRequestController : ControllerBase
         var deliveryLocation = requestDto.DeliveryLocation;
         var products = requestDto.Products;
 
-        var result = await _requestServices.EditRequest(requestId, deliveryDate, deliveryLocation, products);
+        var result = await _orderServices
+            .EditRequestIntoOrder(requestId, deliveryDate, deliveryLocation, products);
 
         return result.Match<IActionResult>(
             request =>
@@ -157,7 +159,7 @@ public class CanteenRequestController : ControllerBase
         [FromBody] PlanningRequestDto planningRequestDto)
     {
         
-        var result = await _requestServices.PlanningRequestIntoOrder(requestId, planningRequestDto.EstablishmentId, 
+        var result = await _orderServices.PlanningRequestIntoOrder(requestId, planningRequestDto.EstablishmentId, 
             planningRequestDto.NewDateTime);
 
         return result.Match<IActionResult>(
@@ -183,7 +185,7 @@ public class CanteenRequestController : ControllerBase
         [FromBody] PlanningRequestDto planningRequestDto)
     {
         
-        var result = await _requestServices.PlanningRequestIntoCart(requestId, planningRequestDto.EstablishmentId, 
+        var result = await _cartServices.PlanningRequestIntoCart(requestId, 
             planningRequestDto.NewDateTime,cartId);
 
         return result.Match<IActionResult>(
@@ -229,7 +231,7 @@ public class CanteenRequestController : ControllerBase
     [Route("cancelRequest")]
     public async Task<IActionResult> CancelRequest(int requestId)
     {
-        var result = await _requestServices.CancelRequest(requestId);
+        var result = await _orderServices.CancelRequestIntoOrder(requestId);
 
         if (result.TryPickT0(out var error, out var response))
         {
@@ -252,7 +254,7 @@ public class CanteenRequestController : ControllerBase
         string deliveryLocation,
         ICollection<MenuProductInypodDto> productDayDtos)
     {
-        var result = await _requestServices.EditRequestIntoCart(requestId,deliveryDate,deliveryLocation,productDayDtos);
+        var result = await _cartServices.EditRequestIntoCart(requestId,deliveryDate,deliveryLocation,productDayDtos);
 
         if (result.TryPickT0(out var error, out var response))
         {

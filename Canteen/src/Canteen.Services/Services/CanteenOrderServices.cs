@@ -6,12 +6,12 @@ namespace Canteen.Services.Services;
 
 public class CanteenOrderServices : CustomServiceBase
 {
-    
+    private readonly MenuServices _menuServices;
 
-    public CanteenOrderServices(EntitiesContext context)
+    public CanteenOrderServices(EntitiesContext context, MenuServices menuServices)
         : base(context)
     {
-     
+        _menuServices = menuServices;
     }
 
     public async Task<OneOf<ResponseErrorDto, Order>> ApplyDiscountToOrder(
@@ -179,7 +179,8 @@ public class CanteenOrderServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-
+                Status = 400,
+                Title = "cart have not request",
             };
         }
         var newOrder = new Order
@@ -198,6 +199,247 @@ public class CanteenOrderServices : CustomServiceBase
         await _context.SaveChangesAsync();
         return newOrder;
 
+    }
+
+    
+
+    public async Task<OneOf<ResponseErrorDto, Request>> EditRequestIntoOrder(
+        int requestId,
+        DateTime deliveryDate,
+        string deliveryLocation,
+        ICollection<MenuProductInypodDto> productDayDtos)
+    {
+       
+        var request = await _context.Requests
+            .Include(r => r.RequestProducts)!.ThenInclude(requestProduct => requestProduct.Product)
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        if (request is null)
+        {
+            return new ResponseErrorDto
+            {
+                Status = 404,
+                Title = "Request not found",
+                Detail = $"The request with id {requestId} was not found"
+            };
+        }
+
+        
+        if (!request.Status.Equals(RequestStatus.Planned))
+        {
+            return new ResponseErrorDto
+            {
+                Status = 400,
+                Title = "Invalid request status",
+                Detail = "The request status has changed and cannot be edited"
+            };
+        }
+
+        //var originalProducts = request.Products.ToList();
+        request.RequestProducts ??= new List<RequestProduct>();
+        var originalProducts = request.RequestProducts;
+        
+        foreach (var product in productDayDtos)
+        {
+            var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
+
+            var aviableProduct = _context.MenuProducts.SingleOrDefault(x=>x.Id == product.MenuProductId);
+            if (aviableProduct is null)
+            {
+                return new ResponseErrorDto()
+                {
+                    Status = 404,
+                    Title = "Product not found",
+                    Detail = $"The product with id {product.Product.Id} has not been found"
+                };
+            }
+            if (existingProduct is not null)
+            {
+                //Aqui debo modificar la cantidad de un producto en que ya estaba en el pedido
+                if (product.Quantity < existingProduct.Quantity && product.Quantity!=0)
+                {
+                    existingProduct.Quantity = product.Quantity;
+                    aviableProduct.Quantity += existingProduct.Quantity - product.Quantity;
+                }
+                else if (product.Quantity > existingProduct.Quantity && product.Quantity- existingProduct.Quantity<=aviableProduct.Quantity 
+                                                                     && product.Quantity!=0)
+                {
+                    existingProduct.Quantity = product.Quantity;
+                    aviableProduct.Quantity -= product.Quantity-existingProduct.Quantity ;
+                }
+                else
+                {
+                    return new ResponseErrorDto
+                    {
+                        Status = 400,
+                        Title = "Insufficient stock",
+                        Detail = $"The product with id {product.Product.Id} does not have sufficient stock"
+                    };
+                }
+                
+            }
+            else
+            {
+                //Esto es para agregar un nuevo producto al pedido 
+                //if (product.Quantity > availableProduct.AsT1.Quantity)
+                if (product.Quantity > aviableProduct.Quantity)
+                {
+                    return new ResponseErrorDto
+                    {
+                        Status = 400,
+                        Title = "Insufficient stock",
+                        Detail = $"The product with id {product.Product.Id} does not have sufficient stock"
+                    };
+                }
+
+                //descuenta la cantidad del producto
+                aviableProduct.Quantity -= product.Quantity;
+                //agrega la cantidad al pedido
+                request.RequestProducts.Add(new RequestProduct()
+                {
+                    ProductId = product.ProductId,
+                    RequestId = request.Id,
+                    Quantity = product.Quantity
+                });
+            }
+        }
+
+        request.DeliveryDate = deliveryDate;
+        request.DeliveryLocation = deliveryLocation;
+        await UpdateTotals(request.OrderId!.Value);
+        await ApplyDiscountToOrder(request.OrderId!.Value);
+        request.TotalAmount = request.RequestProducts.Sum(x=>x.Product.Price);
+        await _context.SaveChangesAsync();
+
+        return request;
+    }
+    public async Task<OneOf<ResponseErrorDto, Request>> PlanningRequestIntoOrder(
+        int requestId,
+        int establishmentId,
+        DateTime newDateTime)
+    {
+        var request = await _context.Requests
+            .Include(x => x.Order)
+            .Include(request => request.RequestProducts!)
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        if (request is null)
+        {
+            return new ResponseErrorDto
+            {
+                Status = 404,
+                Title = "Request not found",
+                Detail = $"The request with id {requestId} was not found"
+            };
+        }
+
+        if (!request.Status.Equals(RequestStatus.Planned))
+        {
+            return new ResponseErrorDto
+            {
+                Status = 400,
+                Title = "Invalid request status",
+                Detail = "The request status has changed and cannot be planned"
+            };
+        }
+
+        var dayMenuResult = _menuServices.GetMenuByEstablishmentAndDate(establishmentId, newDateTime);
+        
+        if (dayMenuResult.IsT1)
+        {
+            return dayMenuResult.AsT0;
+        }
+
+        var dayMenu = dayMenuResult.AsT1;
+
+        //var availableProductsResult =  GetAviableProduct(dayMenu,request);
+        Request newRequest = new Request()
+        {
+            DeliveryDate = newDateTime,
+            DeliveryLocation = request.DeliveryLocation,
+            Status = RequestStatus.Planned,
+            OrderId = request.OrderId,
+            UserId = request.UserId,
+            CreatedAt = DateTimeOffset.Now,
+            TotalAmount = request.TotalAmount,
+            RequestProducts = new List<RequestProduct>()
+        };
+        foreach (var requestProduct in request.RequestProducts!)
+        {
+            var aviableProduct = dayMenu.MenuProducts!.FirstOrDefault(x => x.Product!.Id == requestProduct.ProductId && x.Quantity >= requestProduct.Quantity );
+            if (aviableProduct is null)
+            {
+                return new ResponseErrorDto()
+                {
+                    Status  = 400,
+                    Title = "Insufficient stock",
+                    Detail = $"The product with id {requestProduct.ProductId} does not have sufficient stock"
+                };
+            }
+            else
+            {
+                newRequest.RequestProducts.Add(new RequestProduct()
+                {
+                    ProductId = requestProduct.ProductId,
+                    RequestId = request.Id,
+                    Quantity = requestProduct.Quantity
+                });
+                aviableProduct.Quantity -= requestProduct.Quantity;
+            }
+        }
+        _context.Requests.Add(newRequest);
+        var order = await _context.Orders.FirstOrDefaultAsync(x=>x.Id==request.OrderId);
+        order!.PrductsTotalAmount += newRequest.TotalAmount;
+        order.DeliveryTotalAmount += newRequest.DeliveryAmount;
+        
+        await ApplyDiscountToOrder(request.OrderId!.Value);
+        
+        await _context.SaveChangesAsync();
+
+        return newRequest;
+    }
+    public async Task<OneOf<ResponseErrorDto, Request>> CancelRequestIntoOrder(int requestId)
+    {
+        var request = _context.Requests.Include(x => x.Order)
+            .Include(x => x.RequestProducts)
+            .Include(x => x.Order)
+            .SingleOrDefault(x =>
+                x.Id == requestId &&
+                x.Status.Equals(RequestStatus.Planned));
+
+        if (request is not null)
+        {
+            request.Status = RequestStatus.Cancelled;
+
+            Menu originDayMenu = _context.Menus
+                .Include(x=>x.MenuProducts)
+                .SingleOrDefault(x => x.Date == request.DeliveryDate! && x.EstablishmentId == request.Order!.EstablishmentId)!;
+            foreach (var dayProduct in originDayMenu.MenuProducts!)
+            {
+            
+                //if (response.RequestProducts.Contains(dayProduct.CanteenProductId)) dayProduct.Quantity--;
+                var requestproduct = request.RequestProducts!.FirstOrDefault(x =>
+                    x.ProductId == dayProduct.CanteenProductId);
+                if ( requestproduct is not null)
+                {
+                    dayProduct.Quantity += requestproduct.Quantity;
+                }
+            };
+            
+            await UpdateTotals(request.OrderId!.Value);
+            await ApplyDiscountToOrder(request.OrderId!.Value);
+            await CloseOrderIfAllRequestsClosed(request.OrderId.Value);
+            
+            await _context.SaveChangesAsync();
+            return request;
+        }
+
+        return new ResponseErrorDto()
+        {
+            Status = 404,
+            Title = "Request not found",
+            Detail = $"Request with id {requestId} and status {RequestStatus.Planned} not found"
+        };
     }
 
 }

@@ -11,7 +11,6 @@ public class CanteenCart
     public Establishment? Establishment { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
-
     public decimal PrductsTotalAmount { get; set; }
     public decimal ProductTotalDiscount { get; set; }
     public decimal DeliveryTotalAmount { get; set; }
