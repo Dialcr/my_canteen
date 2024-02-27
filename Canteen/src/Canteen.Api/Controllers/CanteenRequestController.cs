@@ -111,9 +111,9 @@ public class CanteenRequestController : ControllerBase
     [Route("createRequest")]
     [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> CreateRequest([FromForm] RequestIntpudDto requestDto, int userId)
+    public async Task<ActionResult> CreateRequest([FromForm] CreateRequestInputDto createRequestDto, int userId)
     {
-        var result = await _requestServices.CreateRequest(requestDto, userId);
+        var result = await _requestServices.CreateRequest(createRequestDto, userId);
 
         if (result.TryPickT0(out var errorDto, out var request))
         {
@@ -129,14 +129,11 @@ public class CanteenRequestController : ControllerBase
     [Route("editRequest")]
     [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> EditRequest(int requestId, [FromBody] EditRequestDto requestDto)
+    public async Task<IActionResult> EditRequest([FromBody] EditRequestDto requestDto)
     {
-        var deliveryDate = requestDto.DeliveryDate;
-        var deliveryLocation = requestDto.DeliveryLocation;
-        var products = requestDto.Products;
 
         var result = await _orderServices
-            .EditRequestIntoOrder(requestId, deliveryDate, deliveryLocation, products);
+            .EditRequestIntoOrder(requestDto);
 
         return result.Match<IActionResult>(
             request =>
@@ -244,17 +241,13 @@ public class CanteenRequestController : ControllerBase
         return Ok(response);
     }
 
-    //todo: cam,biar la entradaq del endpoint
     [HttpPatch]
     [Route("EditRequestIntoCart")]
     [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> EditRequestIntoCart(int requestId,
-        DateTime deliveryDate,
-        string deliveryLocation,
-        ICollection<MenuProductInypodDto> productDayDtos)
+    public async Task<IActionResult> EditRequestIntoCart(EditRequestDto requestDto)
     {
-        var result = await _cartServices.EditRequestIntoCart(requestId,deliveryDate,deliveryLocation,productDayDtos);
+        var result = await _cartServices.EditRequestIntoCart( requestDto);
 
         if (result.TryPickT0(out var error, out var response))
         {
@@ -262,7 +255,7 @@ public class CanteenRequestController : ControllerBase
             return BadRequest(error);
         }
 
-        _logger.LogInformation($"Request with id {requestId} canceled correctly");
+        _logger.LogInformation($"Request with id {requestDto.RequestId} canceled correctly");
 
         return Ok(response);
     }

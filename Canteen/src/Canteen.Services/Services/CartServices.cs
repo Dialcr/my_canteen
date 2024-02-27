@@ -161,16 +161,13 @@ public class CartServices : CustomServiceBase
     }
     
     public async Task<OneOf<ResponseErrorDto, Request>> EditRequestIntoCart(
-        int requestId,
-        DateTime deliveryDate,
-        string deliveryLocation,
-        ICollection<MenuProductInypodDto> productDayDtos)
+        EditRequestDto requestDto)
     {
        
         var request = await _context.Requests
             .Include(r => r.RequestProducts)!
             .ThenInclude(requestProduct => requestProduct.Product)
-            .FirstOrDefaultAsync(r => r.Id == requestId);
+            .FirstOrDefaultAsync(r => r.Id == requestDto.RequestId);
 
         if (request is null)
         {
@@ -178,7 +175,7 @@ public class CartServices : CustomServiceBase
             {
                 Status = 404,
                 Title = "Request not found",
-                Detail = $"The request with id {requestId} was not found"
+                Detail = $"The request with id {requestDto.RequestId} was not found"
             };
         }
         if (!request.Status.Equals(RequestStatus.Planned))
@@ -194,7 +191,7 @@ public class CartServices : CustomServiceBase
         request.RequestProducts ??= new List<RequestProduct>();
         
        
-        foreach (var product in productDayDtos)
+        foreach (var product in requestDto.Products)
         {
             var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
             if ((existingProduct is not null) )
@@ -215,9 +212,11 @@ public class CartServices : CustomServiceBase
                 });
             }
         }
-        request.DeliveryDate = deliveryDate;
-        request.DeliveryLocation = deliveryLocation;
+        request.DeliveryDate = requestDto.DeliveryDate;
+        request.DeliveryLocation = requestDto.DeliveryLocation;
         request.TotalAmount = request.RequestProducts!.Sum(x=>x.Product.Price);
+        request.DeliveryAmount = requestDto.DeliveryAmount;
+        request.DeliveryTimeId = requestDto.DeliveryTimeId;
         await UpdateTotalsIntoCart(request.OrderId!.Value);
         await ApplyDiscountToCart(request.OrderId!.Value);
         await _context.SaveChangesAsync();

@@ -45,4 +45,7 @@ public class Request
      * almuerzo 12pm-2pm
      * comida 7pm-9pm
      */
+    public int DeliveryTimeId { get; set; }
+    [ForeignKey(nameof(DeliveryTimeId))]
+    public DeliveryTime? DeliveryTime { get; set; }
 }

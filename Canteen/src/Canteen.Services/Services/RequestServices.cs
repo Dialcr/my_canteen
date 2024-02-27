@@ -105,7 +105,7 @@ public class RequestServices : CustomServiceBase
     }
 
     public async Task<OneOf<ResponseErrorDto, Request>> CreateRequest(
-        RequestIntpudDto requestIntpudDto,
+        CreateRequestInputDto createRequestInputDto,
         int userId)
     {
         var cart = new CanteenCart()
@@ -113,15 +113,15 @@ public class RequestServices : CustomServiceBase
             CreatedAt = DateTime.Now,
             UserId = userId,
             Requests = new List<Request>(),
-            EstablishmentId = requestIntpudDto.EstablishmentId
+            EstablishmentId = createRequestInputDto.EstablishmentId
             
             
         };
         //como los cart se eliminan luego de hacer el checkout, si estableshimentid != de 0 quiere decir que
         //debe haber algun carrito de ese usuario para ese estableciemiento y ese usuario
-        if (requestIntpudDto.EstablishmentId != 0)
+        if (createRequestInputDto.EstablishmentId != 0)
         {
-            cart = _context.Carts.FirstOrDefault(x => x.EstablishmentId == requestIntpudDto.EstablishmentId 
+            cart = _context.Carts.FirstOrDefault(x => x.EstablishmentId == createRequestInputDto.EstablishmentId 
                                                       && x.UserId==userId);
             if (cart is null)
             {
@@ -129,7 +129,7 @@ public class RequestServices : CustomServiceBase
                 {
                     Status = 404,
                     Title = "Cart not found",
-                    Detail = $"The cart with id {requestIntpudDto.EstablishmentId} has not found with status"
+                    Detail = $"The cart with id {createRequestInputDto.EstablishmentId} has not found"
                 };
             }
         }
@@ -142,11 +142,12 @@ public class RequestServices : CustomServiceBase
         {
             UserId = userId,
             CreatedAt = DateTime.Now,
-            DeliveryDate = requestIntpudDto.DeliveryDate,
-            DeliveryLocation = requestIntpudDto.DeliveryLocation,
-            TotalAmount = requestIntpudDto.RequestProducts.Sum(x=>x.Product.Price),
-            DeliveryAmount =requestIntpudDto.DeliveryAmount,
-            Status = RequestStatus.Planned
+            DeliveryDate = createRequestInputDto.DeliveryDate,
+            DeliveryLocation = createRequestInputDto.DeliveryLocation,
+            TotalAmount = createRequestInputDto.RequestProducts.Sum(x=>x.Product.Price),
+            DeliveryAmount =createRequestInputDto.DeliveryAmount,
+            Status = RequestStatus.Planned,
+            DeliveryTimeId = createRequestInputDto.DeliveryTimeId
         };
         
         cart.Requests!.Add(request);
@@ -415,7 +416,6 @@ public class RequestServices : CustomServiceBase
         return request;
     }
     
-    //todo: fix the return type
     public async Task<OneOf<ResponseErrorDto, Request>> DiscountFromInventary(Request request, int establishmentId)
     {
         var menu = await _context.Menus.Include(menu => menu.MenuProducts!)

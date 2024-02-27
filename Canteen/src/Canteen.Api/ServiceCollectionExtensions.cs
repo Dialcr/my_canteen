@@ -79,14 +79,14 @@ public static class ServiceCollectionExtensions
     {
         
         services.AddSingleton<IEmailSender, AmazonSesEmailSender>();
+        services.AddScoped<IpAddressServices, IpAddressServices>();
         
         services.AddScoped<CanteenOrderServices, CanteenOrderServices>();
+        services.AddScoped<CartServices, CartServices>();
         services.AddScoped<EstablishmentService, EstablishmentService>();
         services.AddScoped<MenuServices, MenuServices>();
         services.AddScoped<ProductServices, ProductServices>();
         services.AddScoped<RequestServices, RequestServices>();
-        services.AddScoped<IpAddressServices, IpAddressServices>();
-        services.AddScoped<CartServices, CartServices>();
         
         return services;
     }

@@ -204,15 +204,12 @@ public class CanteenOrderServices : CustomServiceBase
     
 
     public async Task<OneOf<ResponseErrorDto, Request>> EditRequestIntoOrder(
-        int requestId,
-        DateTime deliveryDate,
-        string deliveryLocation,
-        ICollection<MenuProductInypodDto> productDayDtos)
+      EditRequestDto requestDto)
     {
        
         var request = await _context.Requests
             .Include(r => r.RequestProducts)!.ThenInclude(requestProduct => requestProduct.Product)
-            .FirstOrDefaultAsync(r => r.Id == requestId);
+            .FirstOrDefaultAsync(r => r.Id == requestDto.RequestId);
 
         if (request is null)
         {
@@ -220,7 +217,7 @@ public class CanteenOrderServices : CustomServiceBase
             {
                 Status = 404,
                 Title = "Request not found",
-                Detail = $"The request with id {requestId} was not found"
+                Detail = $"The request with id {requestDto.RequestId} was not found"
             };
         }
 
@@ -239,7 +236,7 @@ public class CanteenOrderServices : CustomServiceBase
         request.RequestProducts ??= new List<RequestProduct>();
         var originalProducts = request.RequestProducts;
         
-        foreach (var product in productDayDtos)
+        foreach (var product in requestDto.Products)
         {
             var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
 
@@ -304,8 +301,10 @@ public class CanteenOrderServices : CustomServiceBase
             }
         }
 
-        request.DeliveryDate = deliveryDate;
-        request.DeliveryLocation = deliveryLocation;
+        request.DeliveryDate = requestDto.DeliveryDate;
+        request.DeliveryLocation = requestDto.DeliveryLocation;
+        request.DeliveryAmount = requestDto.DeliveryAmount;
+        request.DeliveryTimeId = requestDto.DeliveryTimeId;
         await UpdateTotals(request.OrderId!.Value);
         await ApplyDiscountToOrder(request.OrderId!.Value);
         request.TotalAmount = request.RequestProducts.Sum(x=>x.Product.Price);
