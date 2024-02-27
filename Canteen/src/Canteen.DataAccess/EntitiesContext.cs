@@ -25,6 +25,8 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     public DbSet<KeyValueData> DietaryRestrictions { get; set; }
 
     public DbSet<CanteenCart> Carts { get; set; }
+    public DbSet<DeliveryTime> DeliveryTimes { get; set; }
+    
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
