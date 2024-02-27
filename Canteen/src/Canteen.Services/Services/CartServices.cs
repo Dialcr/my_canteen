@@ -214,7 +214,7 @@ public class CartServices : CustomServiceBase
         }
         request.DeliveryDate = requestDto.DeliveryDate;
         request.DeliveryLocation = requestDto.DeliveryLocation;
-        request.TotalAmount = request.RequestProducts!.Sum(x=>x.Product.Price);
+        request.TotalAmount = request.RequestProducts!.Sum(x=>x.UnitPrice * x.Quantity);
         request.DeliveryAmount = requestDto.DeliveryAmount;
         request.DeliveryTimeId = requestDto.DeliveryTimeId;
         await UpdateTotalsIntoCart(request.OrderId!.Value);

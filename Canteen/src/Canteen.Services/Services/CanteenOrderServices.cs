@@ -307,7 +307,7 @@ public class CanteenOrderServices : CustomServiceBase
         request.DeliveryTimeId = requestDto.DeliveryTimeId;
         await UpdateTotals(request.OrderId!.Value);
         await ApplyDiscountToOrder(request.OrderId!.Value);
-        request.TotalAmount = request.RequestProducts.Sum(x=>x.Product.Price);
+        request.TotalAmount = request.RequestProducts.Sum(x=>x.UnitPrice * x.Quantity);
         await _context.SaveChangesAsync();
 
         return request;

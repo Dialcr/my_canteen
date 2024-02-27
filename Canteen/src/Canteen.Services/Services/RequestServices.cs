@@ -144,10 +144,17 @@ public class RequestServices : CustomServiceBase
             CreatedAt = DateTime.Now,
             DeliveryDate = createRequestInputDto.DeliveryDate,
             DeliveryLocation = createRequestInputDto.DeliveryLocation,
-            TotalAmount = createRequestInputDto.RequestProducts.Sum(x=>x.Product.Price),
+            TotalAmount = createRequestInputDto.RequestProducts.Sum(x=>x.UnitPrice * x.Quantity),
             DeliveryAmount =createRequestInputDto.DeliveryAmount,
             Status = RequestStatus.Planned,
-            DeliveryTimeId = createRequestInputDto.DeliveryTimeId
+            DeliveryTimeId = createRequestInputDto.DeliveryTimeId,
+            RequestProducts = createRequestInputDto.RequestProducts.Select(x => new RequestProduct()
+            {
+                ProductId = x.ProductId,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+                
+            }).ToList()
         };
         
         cart.Requests!.Add(request);

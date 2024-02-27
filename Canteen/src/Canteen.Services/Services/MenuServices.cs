@@ -10,14 +10,14 @@ public class MenuServices : CustomServiceBase
     {
     }
 
-    public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentAndDate(
+    public OneOf<ResponseErrorDto, Menu>  GetMenuByEstablishmentAndDate(
         int idEstablishment,
         DateTimeOffset date)
     {
         var result = _context.Menus.Include(x=>x.MenuProducts)
             .SingleOrDefault(x =>
                 x.EstablishmentId == idEstablishment &&
-                x.Date == date);
+                x.Date.Date == date.Date);
 
         if (result is null)
         {

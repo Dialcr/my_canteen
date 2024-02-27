@@ -111,7 +111,7 @@ public class CanteenRequestController : ControllerBase
     [Route("createRequest")]
     [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> CreateRequest([FromForm] CreateRequestInputDto createRequestDto, int userId)
+    public async Task<ActionResult> CreateRequest(/*[FromForm]*/[FromBody] CreateRequestInputDto createRequestDto, int userId)
     {
         var result = await _requestServices.CreateRequest(createRequestDto, userId);
 

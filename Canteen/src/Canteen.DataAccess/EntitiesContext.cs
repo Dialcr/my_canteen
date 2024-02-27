@@ -65,5 +65,14 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         
         modelBuilder.Entity<CanteenCart>()
             .HasMany(x=>x.Requests);
+        
+        /*
+        modelBuilder.Entity<DeliveryTime>()
+            .HasOne(x=>x.Establishment)
+            .WithMany(x=>x.DeliveryTimes);
+        modelBuilder.Entity<DeliveryTime>()
+            .HasIndex(p => new { p.EstablishmentId, p.DeliveryTimeType })
+            .IsUnique(true);
+        */
     }
 }

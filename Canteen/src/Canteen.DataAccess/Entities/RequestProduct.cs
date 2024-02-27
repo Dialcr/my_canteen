@@ -18,4 +18,6 @@ public class RequestProduct
     public Product Product { get; set; }
 
     [Required] public int Quantity { get; set; } = 0;
+    
+    public decimal UnitPrice { get; set; }
 }
