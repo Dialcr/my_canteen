@@ -6,8 +6,7 @@ public class Request
 {
     [Key]
     public int Id { get; set; }
-
-    [Required]
+    
     public int? OrderId { get; set; }
 
     [ForeignKey(nameof(OrderId))]
@@ -32,7 +31,7 @@ public class Request
 
     [MaxLength(25)]
     public RequestStatus Status { get; set; }
-    [Required]
+    
     public int? CartId { get; set; }
 
     [ForeignKey(nameof(CartId))]
