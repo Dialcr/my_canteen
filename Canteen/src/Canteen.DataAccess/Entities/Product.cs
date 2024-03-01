@@ -12,7 +12,7 @@ public class Product
 
     [MaxLength(50)] public ProductCategory Category { get; set; }
 
-    //public decimal Price { get; set; }
+    [Required] public decimal Price { get; set; }
 
     [Required] public int EstablishmentId { get; set; }
 
