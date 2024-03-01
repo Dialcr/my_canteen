@@ -13,7 +13,7 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<Establishment> Establishments { get; set; }
-    public DbSet<Request> Requests { get; set; }
+    public DbSet<CanteenRequest> Requests { get; set; }
     public DbSet<RequestProduct> RequestProducts { get; set; }
     public DbSet<Menu> Menus { get; set; }
     public DbSet<MenuProduct> MenuProducts { get; set; }

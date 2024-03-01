@@ -203,7 +203,7 @@ public class CanteenOrderServices : CustomServiceBase
 
     
 
-    public async Task<OneOf<ResponseErrorDto, Request>> EditRequestIntoOrder(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> EditRequestIntoOrder(
       EditRequestDto requestDto)
     {
        
@@ -247,7 +247,7 @@ public class CanteenOrderServices : CustomServiceBase
                 {
                     Status = 404,
                     Title = "Product not found",
-                    Detail = $"The product with id {product.Product.Id} has not been found"
+                    Detail = $"The product with id {product.ProductId} has not been found"
                 };
             }
             if (existingProduct is not null)
@@ -270,7 +270,7 @@ public class CanteenOrderServices : CustomServiceBase
                     {
                         Status = 400,
                         Title = "Insufficient stock",
-                        Detail = $"The product with id {product.Product.Id} does not have sufficient stock"
+                        Detail = $"The product with id {product.ProductId} does not have sufficient stock"
                     };
                 }
                 
@@ -285,7 +285,7 @@ public class CanteenOrderServices : CustomServiceBase
                     {
                         Status = 400,
                         Title = "Insufficient stock",
-                        Detail = $"The product with id {product.Product.Id} does not have sufficient stock"
+                        Detail = $"The product with id {product.ProductId} does not have sufficient stock"
                     };
                 }
 
@@ -312,7 +312,7 @@ public class CanteenOrderServices : CustomServiceBase
 
         return request;
     }
-    public async Task<OneOf<ResponseErrorDto, Request>> PlanningRequestIntoOrder(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> PlanningRequestIntoOrder(
         int requestId,
         int establishmentId,
         DateTime newDateTime)
@@ -352,7 +352,7 @@ public class CanteenOrderServices : CustomServiceBase
         var dayMenu = dayMenuResult.AsT1;
 
         //var availableProductsResult =  GetAviableProduct(dayMenu,request);
-        Request newRequest = new Request()
+        CanteenRequest newCanteenRequest = new CanteenRequest()
         {
             DeliveryDate = newDateTime,
             DeliveryLocation = request.DeliveryLocation,
@@ -377,7 +377,7 @@ public class CanteenOrderServices : CustomServiceBase
             }
             else
             {
-                newRequest.RequestProducts.Add(new RequestProduct()
+                newCanteenRequest.RequestProducts.Add(new RequestProduct()
                 {
                     ProductId = requestProduct.ProductId,
                     RequestId = request.Id,
@@ -386,18 +386,18 @@ public class CanteenOrderServices : CustomServiceBase
                 aviableProduct.Quantity -= requestProduct.Quantity;
             }
         }
-        _context.Requests.Add(newRequest);
+        _context.Requests.Add(newCanteenRequest);
         var order = await _context.Orders.FirstOrDefaultAsync(x=>x.Id==request.OrderId);
-        order!.PrductsTotalAmount += newRequest.TotalAmount;
-        order.DeliveryTotalAmount += newRequest.DeliveryAmount;
+        order!.PrductsTotalAmount += newCanteenRequest.TotalAmount;
+        order.DeliveryTotalAmount += newCanteenRequest.DeliveryAmount;
         
         await ApplyDiscountToOrder(request.OrderId!.Value);
         
         await _context.SaveChangesAsync();
 
-        return newRequest;
+        return newCanteenRequest;
     }
-    public async Task<OneOf<ResponseErrorDto, Request>> CancelRequestIntoOrder(int requestId)
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> CancelRequestIntoOrder(int requestId)
     {
         var request = _context.Requests.Include(x => x.Order)
             .Include(x => x.RequestProducts)

@@ -2,7 +2,7 @@
 
 namespace Canteen.DataAccess.Entities;
 
-public class Request
+public class CanteenRequest
 {
     [Key]
     public int Id { get; set; }

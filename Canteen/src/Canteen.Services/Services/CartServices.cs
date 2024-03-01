@@ -123,22 +123,23 @@ public class CartServices : CustomServiceBase
         return cart;
     }
 
-    public async Task<OneOf<ResponseErrorDto, CanteenCart>> UpdateTotalsIntoCart(int orderId)
+    public async Task<OneOf<ResponseErrorDto, CanteenCart>> UpdateTotalsIntoCart(int cartId)
     {
-        var cart = await _context.Carts.Include(x => x.Requests).FirstOrDefaultAsync(x => x.Id == orderId);
+        var cart = await _context.Carts.Include(x => x.Requests).FirstOrDefaultAsync(x => x.Id == cartId);
         if (cart is null)
         {
             return new ResponseErrorDto()
             {
                 Status = 404,
                 Title = "Order not found",
-                Detail = $"The order with id {orderId} has not found"
+                Detail = $"The order with id {cartId} has not found"
             };
         }
         cart.PrductsTotalAmount = cart.Requests!.Where(x => x.Status == RequestStatus.Planned)
             .Sum(x => x.TotalAmount);
         cart.DeliveryTotalAmount = cart.Requests!.Where(x => x.Status == RequestStatus.Planned)
             .Sum(x => x.DeliveryAmount);
+        await ApplyDiscountToCart(cartId);
         await _context.SaveChangesAsync();
         return cart;
 
@@ -160,7 +161,7 @@ public class CartServices : CustomServiceBase
         return cart;
     }
     
-    public async Task<OneOf<ResponseErrorDto, Request>> EditRequestIntoCart(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> EditRequestIntoCart(
         EditRequestDto requestDto)
     {
        
@@ -223,7 +224,7 @@ public class CartServices : CustomServiceBase
 
         return request;
     }
-    public async Task<OneOf<ResponseErrorDto, Request>> AddProductToRequestCartAsync(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> AddProductToRequestCartAsync(
         int userId,
         RequestInputDto dto)
     {
@@ -268,7 +269,7 @@ public class CartServices : CustomServiceBase
     }
     //todo: make delete requestPorduct to cart
     
-    public async Task<OneOf<ResponseErrorDto, Request>> PlanningRequestIntoCart(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> PlanningRequestIntoCart(
         int requestId,
         DateTime newDateTime
         ,int cartId)
@@ -285,7 +286,7 @@ public class CartServices : CustomServiceBase
             };
         }
 
-        var newRequest = new Request()
+        var newRequest = new CanteenRequest()
         {
             CreatedAt = DateTime.Now,
             DeliveryDate = newDateTime,

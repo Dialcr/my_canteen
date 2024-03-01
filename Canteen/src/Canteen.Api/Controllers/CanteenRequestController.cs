@@ -27,14 +27,14 @@ public class CanteenRequestController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<Request>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<CanteenRequest>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getRequestList")]
-    public ActionResult<OneOf<ResponseErrorDto, List<Request>>> GetRequestList(int userId)
+    public async Task<ActionResult<OneOf<ResponseErrorDto, List<CanteenRequest>>>> GetRequestList(int userId)
     {
-        var result = _requestServices.RequestsList(userId);
+        var result = await _requestServices.RequestsList(userId);
 
-        if (result.Result.TryPickT0(out var error, out var response))
+        if (result.TryPickT0(out var error, out var response))
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return BadRequest(error);
@@ -46,10 +46,10 @@ public class CanteenRequestController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<Request>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<CanteenRequest>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getHistoryRequests")]
-    public IActionResult GetHistoryRequests(int userId)
+    public ActionResult<OneOf<ResponseErrorDto, List<CanteenRequest>>> GetHistoryRequests(int userId)
     {
         var result = _requestServices.HistoryRequest(userId);
 
@@ -67,11 +67,11 @@ public class CanteenRequestController : ControllerBase
     }
 
     [HttpPatch]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status400BadRequest)]
     [Route("moveRequest")]
-    public async Task<IActionResult> MoveRequest(int requestId, DateTime moveDate)
+    public async Task<ActionResult<OneOf<ResponseErrorDto, CanteenRequest>>> MoveRequest(int requestId, DateTime moveDate)
     {
         var result = await _requestServices.MoveRequestIntoOrder(requestId, moveDate);
 
@@ -92,7 +92,7 @@ public class CanteenRequestController : ControllerBase
 
     [HttpPost]
     [Route("makeARequest")]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> MakeARequest([FromForm] RequestDto requestDto)
     {
@@ -107,27 +107,36 @@ public class CanteenRequestController : ControllerBase
 
         return Ok(request);
     }
+
     [HttpPost]
     [Route("createRequest")]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenCart), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> CreateRequest(/*[FromForm]*/[FromBody] CreateRequestInputDto createRequestDto, int userId)
+    public async Task<IActionResult> CreateRequest([FromBody] CreateRequestInputDto createRequestDto, int userId)
     {
+        //todo revisar por que devuelve un 500 si hace el proceso bien 
         var result = await _requestServices.CreateRequest(createRequestDto, userId);
 
-        if (result.TryPickT0(out var errorDto, out var request))
+        if (result.TryPickT0(out var errorDto, out var cart))
         {
             _logger.LogError(errorDto.Detail);
 
             return NotFound(errorDto);
         }
 
-        return Ok(request);
+        var discountToCart = await _cartServices.UpdateTotalsIntoCart(cart.Id);
+        if (discountToCart.TryPickT0(out var discountError, out var _))
+        {
+            _logger.LogError(discountError.Detail);
+
+        }
+        _logger.LogInformation($"Request created successfully ");
+        return Ok(cart);
     }
 
-    [HttpPut]
+    [HttpPatch]
     [Route("editRequest")]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EditRequest([FromBody] EditRequestDto requestDto)
     {
@@ -173,7 +182,7 @@ public class CanteenRequestController : ControllerBase
         );
     }
     [HttpPost("{requestId}/plan/cart")]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PlanningRequestCart(
         int requestId,
@@ -200,7 +209,7 @@ public class CanteenRequestController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getRequest")]
     public IActionResult GetRequest(int requestId)
@@ -223,7 +232,7 @@ public class CanteenRequestController : ControllerBase
 
     [HttpPatch]
     [HttpGet]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("cancelRequest")]
     public async Task<IActionResult> CancelRequest(int requestId)
@@ -243,7 +252,7 @@ public class CanteenRequestController : ControllerBase
 
     [HttpPatch]
     [Route("EditRequestIntoCart")]
-    [ProducesResponseType(typeof(Request), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EditRequestIntoCart(EditRequestDto requestDto)
     {

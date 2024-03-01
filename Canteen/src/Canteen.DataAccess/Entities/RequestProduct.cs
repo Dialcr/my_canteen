@@ -9,7 +9,7 @@ public class RequestProduct
     public int RequestId { get; set; }
     
     [ForeignKey(nameof(RequestId))]
-    public Request Request { get; set; }
+    public CanteenRequest CanteenRequest { get; set; }
     
     [Required]
     public int ProductId { get; set; }
