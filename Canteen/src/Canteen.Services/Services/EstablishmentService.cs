@@ -10,11 +10,11 @@ public class EstablishmentService : CustomServiceBase
     {
     }
 
-    public async Task<OneOf<ResponseErrorDto, List<Establishment>>> GetAllEstablishmentsAsync()
+    public OneOf<ResponseErrorDto, ICollection<EstablishmentOutputDto>> GetAllEstablishmentsAsync()
     {
-        var allStablish = _context.Establishments.ToList();
+        var allStablish = _context.Establishments;
 
-        if (allStablish is null)
+        if (!allStablish.Any())
         {
             return new ResponseErrorDto
             {
@@ -24,10 +24,11 @@ public class EstablishmentService : CustomServiceBase
             };
         }
 
-        return allStablish;
+        var establismentList = allStablish.Select(x=>x.ToEstablishmentOutputDto());
+        return establismentList.ToList();
     }
 
-    public async Task<OneOf<ResponseErrorDto, Establishment>> GetEstablishmentById(int id)
+    public async Task<OneOf<ResponseErrorDto, EstablishmentOutputDto>> GetEstablishmentById(int id)
     {
         var establish = await _context.Establishments
             .Where(x => x.Id == id)
@@ -43,9 +44,9 @@ public class EstablishmentService : CustomServiceBase
             };
         }
 
-        return establish;
+        return establish.ToEstablishmentOutputDto();
     }
-    public async Task<OneOf<ResponseErrorDto, IQueryable<Establishment>>> GetAllEstablishment()
+    public OneOf<ResponseErrorDto, ICollection<EstablishmentOutputDto>> GetAllEstablishment()
     {
         var establish = _context.Establishments;
             
@@ -58,7 +59,7 @@ public class EstablishmentService : CustomServiceBase
                 Detail = "Have not any establishment"
             };
         }
-
-        return establish;
+        var establismentList = establish.Select(x=>x.ToEstablishmentOutputDto());
+        return establismentList.ToList();
     }
 }

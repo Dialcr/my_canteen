@@ -15,7 +15,7 @@ public class CartController : ControllerBase
     }
     [HttpGet]
     [Route("getCart/{userId}")]
-    [ProducesResponseType(typeof(CanteenCart), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
 
     public async Task<IActionResult> GetCart(int userId)
@@ -29,7 +29,7 @@ public class CartController : ControllerBase
     }
     [HttpPatch]
     [Route("checkout")]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApplyDiscountToCart(int cardId)
     {
@@ -38,7 +38,25 @@ public class CartController : ControllerBase
         {
             return BadRequest(error);
         }
-        return Ok(response);
+        else if (response.TryPickT0(out var collection, out var order))
+        {
+            return BadRequest(collection);
+        }
+        return Ok(response.AsT1);
+    } 
+    
+    [HttpPatch]
+    [Route("DeleteRequestIntoCart")]
+    [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteRequestIntoCart(int userId, int cartId, int requestId)
+    {
+        var result = await _cartServices.DeleteRequestIntoCart(userId, cartId, requestId);
+        if (result.TryPickT0(out var error, out var response))
+        {
+            return BadRequest(error);
+        }
+        return Ok(response.ToCanteenRequestOutputDto());
     }
     
 }

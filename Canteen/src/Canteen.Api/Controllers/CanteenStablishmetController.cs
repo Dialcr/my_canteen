@@ -20,11 +20,11 @@ public class CanteenStablishmentController : ControllerBase
 
     [HttpGet]
     [Route("getAllsEstablishments")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<EstablishmentOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAllSEstablishments()
+    public IActionResult GetAllSEstablishments()
     {
-        var establishments = await _establishmentService.GetAllEstablishmentsAsync();
+        var establishments =  _establishmentService.GetAllEstablishmentsAsync();
 
         if (establishments.TryPickT0(out var error, out var stablList))
         {
@@ -40,7 +40,7 @@ public class CanteenStablishmentController : ControllerBase
 
     [HttpGet]
     [Route("getEstablishmentById")]
-    [ProducesResponseType(typeof(Establishment), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(EstablishmentOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetEstablishmentById(int id)
     {
@@ -58,11 +58,11 @@ public class CanteenStablishmentController : ControllerBase
     }
     [HttpGet]
     [Route("getAllEstablishment")]
-    [ProducesResponseType(typeof(IQueryable<Establishment>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<EstablishmentOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAllEstablishment()
+    public IActionResult GetAllEstablishment()
     {
-        var stablish = await _establishmentService.GetAllEstablishment();
+        var stablish =  _establishmentService.GetAllEstablishment();
 
         if (stablish.TryPickT0(out var error, out var establishment))
         {

@@ -15,6 +15,11 @@ public class MenuServices : CustomServiceBase
         DateTimeOffset date)
     {
         var result = _context.Menus.Include(x=>x.MenuProducts)
+            .ThenInclude(x=>x.Product)
+            .ThenInclude(y=>y!.DietaryRestrictions)
+            .Include(x=>x.MenuProducts)
+            .ThenInclude(x=>x.Product)
+            .ThenInclude(y=>y!.ImagesUrl)
             .SingleOrDefault(x =>
                 x.EstablishmentId == idEstablishment &&
                 x.Date.Date == date.Date);

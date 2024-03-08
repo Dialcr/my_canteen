@@ -21,10 +21,10 @@ public class CanteenProductController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductById")]
-    public IActionResult GetCantneeProductById(int productId)
+    public IActionResult GetCantneeProductById(int productId)   
     {
         var result = _productServices.GetCantneeProductById(productId);
 
@@ -37,11 +37,11 @@ public class CanteenProductController : ControllerBase
 
         _logger.LogInformation("CantneeProduct found correctly");
 
-        return Ok(response);
+        return Ok(response.ToProductOutputDto());
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductsByCategory")]
     public IActionResult GetCantneeProductsByCategory(ProductCategory categoryProduct)
@@ -61,51 +61,23 @@ public class CanteenProductController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getCantneeProductsByDietaryRestrictions")]
     public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {
         var result = _productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
 
-        /*
-         if (result.TryPickT0(out var error, out var response))
+        
+        if (result.TryPickT0(out var error, out var response))
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
             return BadRequest(error);
         }
-        */
-        if (!result.Any())
-        {
-            return BadRequest(new ResponseErrorDto()
-            {
-                Status = 404,
-
-                Title = "Products not found",
-                Detail = $"The product with dietary restriction {dietaryRestriction} has not been found"
-            });
-        }
         _logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
 
         return Ok(result);
     }
-
-    [HttpGet]
-    [ProducesResponseType(typeof(List<MenuProduct>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    [Route("getCantneeProductsByMenu")]
-    public async Task<IActionResult> GetCantneeProductsByMenu(Menu dayMenu)
-    {
-        var result = await _productServices.GetCantneeProductsByMenu(dayMenu);
-
-        if (result.TryPickT0(out var error, out var response))
-        {
-            return BadRequest(error);
-        }
-
-        _logger.LogInformation($"All CantneeProduct of menu {dayMenu.Id} form establishment {dayMenu.EstablishmentId} found correctly");
-
-        return Ok(response);
-    }
+    
 }

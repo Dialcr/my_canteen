@@ -14,10 +14,12 @@ public class CartServices : CustomServiceBase
         _requestServices = requestServices;
     }
 
-    public async Task<OneOf<ResponseErrorDto,ICollection<RequestInputDto>, Order>> Checkout(int cartId)
+    public async Task<OneOf<ResponseErrorDto,ICollection<RequestInputDto>, OrderOutputDto>> Checkout(int cartId)
     {
         var cart = await _context.Carts
             .Include(x => x.Requests)
+            .ThenInclude(x => x.RequestProducts)
+            .ThenInclude(requestProduct => requestProduct.Product)
             .SingleOrDefaultAsync(x => x.Id == cartId);
         
         if (cart is null)
@@ -32,8 +34,23 @@ public class CartServices : CustomServiceBase
         var productsOutput  = new List<RequestInputDto>(); 
         foreach (var request in cart.Requests!)
         {
-            var menu = await _context.Menus.FirstOrDefaultAsync(x=>x.EstablishmentId == cart.EstablishmentId 
-                                                                   && x.Date == request.DeliveryDate);
+            var menu = await _context.Menus.Include(x=>x.MenuProducts)
+                .FirstOrDefaultAsync(x=>x.EstablishmentId == cart.EstablishmentId 
+                                        && x.Date.Date == request.DeliveryDate.Date);
+            //&&  DateTimeOffset.Compare(x.Date, request.DeliveryDate) == 0);
+            if (menu is null)
+            {
+                productsOutput = productsOutput.Concat(request.RequestProducts.Select(x => new RequestInputDto()
+                {
+                    RequestId = request.Id,
+                    Product = new ProductDayDto
+                    {
+                        Product = x.Product,
+                        Quantity = x.Quantity,
+                        ProductId = x.ProductId
+                    }
+                })).ToList();
+            }
             var result =  _requestServices.AllProductsOk(request, menu!);
             if (result.TryPickT0(out var errorProducts, out var _))
             {
@@ -65,7 +82,7 @@ public class CartServices : CustomServiceBase
 
         _context.Carts.Remove(cart);
         await _context.SaveChangesAsync();
-        return order;
+        return order.ToOrderOutputDto();
     }
     
     public async Task<OneOf<ResponseErrorDto, CanteenCart>> ApplyDiscountToCart(
@@ -97,27 +114,7 @@ public class CartServices : CustomServiceBase
 
         cart.ProductTotalDiscount = (totalDiscount is not null) ? totalDiscount.DiscountDecimal : 1;
         cart.DeliveryTotalDiscount = (delivaryDiscount is not null) ? delivaryDiscount.DiscountDecimal : 1;
-
-        if (cart.ProductTotalDiscount == 1)
-        {
-            return new ResponseErrorDto()
-            {
-                Status = 404,
-                Title = "Discount not found",
-                Detail = $"Not total discount available"
-            };
-        }
-
-        if (cart.DeliveryTotalDiscount == 1)
-        {
-            return new ResponseErrorDto()
-            {
-                Status = 404,
-                Title = "Discount not found",
-                Detail = $"Not delivery discount available"
-            };
-        }
-
+        
         await _context.SaveChangesAsync();
 
         return cart;
@@ -144,10 +141,12 @@ public class CartServices : CustomServiceBase
         return cart;
 
     }
-    public async Task<OneOf<ResponseErrorDto, CanteenCart>> GetCartByUserId(int userId)
+    public async Task<OneOf<ResponseErrorDto, CartOutputDto>> GetCartByUserId(int userId)
     {
         var cart = await _context.Carts
             .Include(x => x.Requests)
+            .ThenInclude(x=>x.RequestProducts)
+            .ThenInclude(x=>x.Product)
             .FirstOrDefaultAsync(x => x.UserId == userId);
         if (cart is null)
         {
@@ -158,10 +157,10 @@ public class CartServices : CustomServiceBase
                 Detail = $"The cart of user with id {userId} has not found"
             };
         }
-        return cart;
+        return cart.ToCanteenCartDto();
     }
     
-    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> EditRequestIntoCart(
+    public async Task<OneOf<ResponseErrorDto, RequestOutputDto>> EditRequestIntoCart(
         EditRequestDto requestDto)
     {
        
@@ -192,24 +191,33 @@ public class CartServices : CustomServiceBase
         request.RequestProducts ??= new List<RequestProduct>();
         
        
-        foreach (var product in requestDto.Products)
+        foreach (var productDto in requestDto.Products)
         {
-            var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
+            var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == productDto.ProductId);
             if ((existingProduct is not null) )
             {
-                if (existingProduct.Quantity != product.Quantity)
-                {
-                    existingProduct.Quantity = product.Quantity;
-                    
-                }
+                
+                existingProduct.Quantity = productDto.Quantity;
+                
             }
             else
             {
+                var addProduct = _context.Products.FirstOrDefault(x => x.Id == productDto.ProductId);
+                if (addProduct is null)
+                {
+                    return new ResponseErrorDto()
+                    {
+                        Status = 404,
+                        Title = "Product not found",
+                        Detail = $"The product with id {productDto.ProductId} has not been found"
+                    };
+                }
                 request.RequestProducts.Add(new RequestProduct()
                 {
-                    ProductId = product.ProductId,
+                    ProductId = productDto.ProductId,
                     RequestId = request.Id,
-                    Quantity = product.Quantity
+                    Quantity = productDto.Quantity,
+                    UnitPrice = addProduct.Price
                 });
             }
         }
@@ -218,11 +226,11 @@ public class CartServices : CustomServiceBase
         request.TotalAmount = request.RequestProducts!.Sum(x=>x.UnitPrice * x.Quantity);
         request.DeliveryAmount = requestDto.DeliveryAmount;
         request.DeliveryTimeId = requestDto.DeliveryTimeId;
-        await UpdateTotalsIntoCart(request.OrderId!.Value);
-        await ApplyDiscountToCart(request.OrderId!.Value);
+        await UpdateTotalsIntoCart(request.CartId!.Value);
+        await ApplyDiscountToCart(request.CartId!.Value);
         await _context.SaveChangesAsync();
 
-        return request;
+        return request.ToCanteenRequestWithProductsDto();
     }
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> AddProductToRequestCartAsync(
         int userId,
@@ -268,11 +276,58 @@ public class CartServices : CustomServiceBase
         return request;
     }
     //todo: make delete requestPorduct to cart
-    
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> DeleteRequestIntoCart(
+        int userId,
+        int cartId,
+        int requestId)
+    {
+        var cart = await _context.Carts.Include(x=>x.Requests)
+            .FirstOrDefaultAsync(x=>x.Id==cartId && x.UserId==userId);
+        if (cart is null)
+        {
+            return new ResponseErrorDto()
+            {
+                Status = 404,
+                Title = "Cart not found",
+                Detail = $"The cart of user with id {userId} has not found"
+            };
+        }
+        var request = cart.Requests!.FirstOrDefault(x=>x.Id==requestId);
+        if (request is null)
+        {
+            return new ResponseErrorDto()
+            {
+                Status = 404,
+                Title = "Request not found",
+                Detail = $"The request with id {requestId} was not found"
+            };
+        }
+        
+        _context.Requests.Remove(request);
+        var affectColumns =await _context.SaveChangesAsync();
+        if (affectColumns > 0)
+        {
+            return new ResponseErrorDto()
+            {
+                Status = 400,
+                Title = "Failed to delete request",
+                Detail = $"The request with id {requestId} was not deleted"
+            };
+        }
+
+        return new ResponseErrorDto()
+        {
+            Status = 200,
+            Title = "Request deleted successfully",
+            Detail = $"The request with id {requestId} was deleted successfully"
+                
+        };
+        
+    }
+
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> PlanningRequestIntoCart(
         int requestId,
-        DateTime newDateTime
-        ,int cartId)
+        DateTime newDateTime)
     {
        
         var request = await _context.Requests.Include(x=> x.RequestProducts).FirstOrDefaultAsync(x=>x.Id==requestId);
@@ -293,18 +348,26 @@ public class CartServices : CustomServiceBase
             DeliveryLocation = request.DeliveryLocation,
             Status = RequestStatus.Planned,
             UserId = request.UserId,
-            RequestProducts = request.RequestProducts,
+            RequestProducts = request.RequestProducts!.Select(x=>
+                new RequestProduct()
+                {
+                    ProductId = x.ProductId,
+                    Quantity = x.Quantity,
+                    UnitPrice = x.UnitPrice
+                }).ToList(),
             TotalAmount = request.TotalAmount,
-            CartId = cartId,
+            CartId = request.CartId,
             DeliveryAmount = request.DeliveryAmount,
-
-
+            DeliveryTimeId = request.DeliveryTimeId,
+            
         };
+        
         await _context.Requests.AddAsync(newRequest);
         
-        await ApplyDiscountToCart(request.CartId!.Value);
         
         await _context.SaveChangesAsync();
+        await UpdateTotalsIntoCart(newRequest.CartId.Value);
+        await ApplyDiscountToCart(newRequest.CartId.Value);
 
         return newRequest;
     }

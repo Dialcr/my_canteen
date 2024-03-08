@@ -20,7 +20,7 @@ public class CanteenMenuController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(Menu), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MenuOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
     [Route("getMenuByEstablishmentAndDate")]
     public IActionResult GetMenuByEstablishmentDate(
@@ -38,6 +38,6 @@ public class CanteenMenuController : ControllerBase
 
         _logger.LogInformation($"Menu from establishment {idEstablishment} in date {date}found correctly");
 
-        return Ok(response);
+        return Ok(response.ToEstablishmentOutputDto());
     }
 }

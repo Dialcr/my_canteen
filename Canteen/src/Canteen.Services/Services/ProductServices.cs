@@ -2,6 +2,7 @@
 using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Dto;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
@@ -14,9 +15,11 @@ public class ProductServices : CustomServiceBase
     {
     }
 
-    public async Task<OneOf<ResponseErrorDto, List<Product>>> GetCantneeProductsByCategory(ProductCategory categoryProduct)
+    public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategory(ProductCategory categoryProduct)
     {
-        var result = await _context.Products.Where(x => x.Category == categoryProduct).ToListAsync();
+        var result = await _context.Products.Include(x=>x.DietaryRestrictions)
+            .Include(x=>x.ImagesUrl)
+            .Where(x => x.Category == categoryProduct).ToListAsync();
 
         if (result is null)
         {
@@ -28,17 +31,17 @@ public class ProductServices : CustomServiceBase
             };
         }
 
-        return result;
+        return result.Select(x => x.ToProductOutputDto()).ToList();
     }
 
-    public async Task<OneOf<ResponseErrorDto, IEnumerable<MenuProduct>>> GetCantneeProductsByMenu(Menu dayMenu)
+    public OneOf<ResponseErrorDto, IEnumerable<MenuProduct>> GetCantneeProductsByMenu(Menu dayMenu)
     {
-        var result = dayMenu.MenuProducts
+        var result = dayMenu.MenuProducts!
             .Where(x => x.Quantity > 0)
             .ToList();
             
 
-        if (result is null)
+        if (!result.Any())
         {
             return new ResponseErrorDto()
             {
@@ -53,7 +56,9 @@ public class ProductServices : CustomServiceBase
 
     public OneOf<ResponseErrorDto, Product> GetCantneeProductById(int productId)
     {
-        var result = _context.Products.SingleOrDefault(x => x.Id == productId);
+        var result = _context.Products.Include(x=>x.DietaryRestrictions)
+            .Include(x=>x.ImagesUrl)
+            .SingleOrDefault(x => x.Id == productId);
 
         if (result is null)
         {
@@ -64,15 +69,24 @@ public class ProductServices : CustomServiceBase
                 Detail = $"The product with id {productId} has not been found"
             };
         }
-
         return result;
     }
     
 
-    public IQueryable<Product> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
+    public OneOf<ResponseErrorDto,ICollection<ProductOutputDto>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {
-        var result =  _context.Products
+        var result =  _context.Products.Include(x=>x.DietaryRestrictions)
+            .Include(x=>x.ImagesUrl)
                 .Where(x => x.DietaryRestrictions!.Any(y => y.Description == dietaryRestriction));
-        return result;
+        if (!result.Any())
+        {
+            return new ResponseErrorDto()
+            {
+                Status = 404,
+                Title = "Products not found",
+                Detail = $"The product with dietary restriction {dietaryRestriction} has not been found"
+            };
+        }
+        return result.Select(x => x.ToProductOutputDto()).ToList();
     }
 }
