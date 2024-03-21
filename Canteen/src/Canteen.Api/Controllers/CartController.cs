@@ -46,7 +46,7 @@ public class CartController(CartServices cartServices) : ControllerBase
         {
             return BadRequest(error);
         }
-        return Ok(response.ToCanteenRequestOutputDto());
+        return Ok(response);
     }
     
 }

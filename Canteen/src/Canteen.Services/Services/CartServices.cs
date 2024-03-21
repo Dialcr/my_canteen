@@ -8,7 +8,7 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
 {
     public async Task<OneOf<IEnumerable<RequestInputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
     {
-        var cart = await _context.Carts
+        var cart = await context.Carts
             .Include(x => x.Requests)
             .ThenInclude(x => x.RequestProducts)
             .ThenInclude(requestProduct => requestProduct.Product)
@@ -21,7 +21,7 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
         }
         foreach (var request in cart.Requests!)
         {
-            var menu = await _context.Menus.Include(x=>x.MenuProducts)
+            var menu = await context.Menus.Include(x=>x.MenuProducts)
                 .FirstOrDefaultAsync(x=>x.EstablishmentId == cart.EstablishmentId 
                                         && x.Date.Date == request.DeliveryDate.Date);
             if (menu is null)
@@ -55,32 +55,31 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
        
         //todo: implemet payment method
 
-        _context.Carts.Remove(cart);
-        await _context.SaveChangesAsync();
+        context.Carts.Remove(cart);
+        await context.SaveChangesAsync();
         return order.ToOrderOutputDto();
     }
     
     public async Task<OneOf<ResponseErrorDto, CanteenCart>> ApplyDiscountToCartAsync(
         int cardId)
     {
-        var cart = await _context.Carts.FindAsync(cardId);
+        var cart = await context.Carts.FindAsync(cardId);
         if (cart is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Cart not found",
-                Detail = $"The order with id {cardId} has not found"
-            };
+            return Error(
+                "Cart not found",
+                $"The order with id {cardId} has not found",
+                400
+                );
         }
 
-        var totalDiscount = _context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
+        var totalDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
                                                           && x.DiscountType.Equals(DiscountType.TotalAmount)
                                                           && cart.PrductsTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
 
-        var delivaryDiscount = _context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
+        var delivaryDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
                                                              && x.DiscountType.Equals(DiscountType.DeliveryAmount)
                                                              && cart.DeliveryTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
@@ -90,47 +89,41 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
         cart.ProductTotalDiscount = (totalDiscount is not null) ? totalDiscount.DiscountDecimal : 1;
         cart.DeliveryTotalDiscount = (delivaryDiscount is not null) ? delivaryDiscount.DiscountDecimal : 1;
         
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return cart;
     }
 
     public async Task<OneOf<ResponseErrorDto, CanteenCart>> UpdateTotalsIntoCartAsync(int cartId)
     {
-        var cart = await _context.Carts.Include(x => x.Requests).FirstOrDefaultAsync(x => x.Id == cartId);
+        var cart = await context.Carts.Include(x => x.Requests).FirstOrDefaultAsync(x => x.Id == cartId);
         if (cart is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Order not found",
-                Detail = $"The order with id {cartId} has not found"
-            };
+            return Error("Order not found",
+                $"The order with id {cartId} has not found",
+                400);
         }
         cart.PrductsTotalAmount = cart.Requests!.Where(x => x.Status == RequestStatus.Planned)
             .Sum(x => x.TotalAmount);
         cart.DeliveryTotalAmount = cart.Requests!.Where(x => x.Status == RequestStatus.Planned)
             .Sum(x => x.DeliveryAmount);
         await ApplyDiscountToCartAsync(cartId);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return cart;
 
     }
     public async Task<OneOf<ResponseErrorDto, CartOutputDto>> GetCartByUserIdAsync(int userId)
     {
-        var cart = await _context.Carts
+        var cart = await context.Carts
             .Include(x => x.Requests)
             .ThenInclude(x=>x.RequestProducts)
             .ThenInclude(x=>x.Product)
             .FirstOrDefaultAsync(x => x.UserId == userId);
         if (cart is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Cart not found",
-                Detail = $"The cart of user with id {userId} has not found"
-            };
+            return Error("Cart not found",
+                $"The cart of user with id {userId} has not found",
+                400);
         }
         return cart.ToCanteenCartDto();
     }
@@ -139,28 +132,22 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
         EditRequestDto requestDto)
     {
        
-        var request = await _context.Requests
+        var request = await context.Requests
             .Include(r => r.RequestProducts)!
             .ThenInclude(requestProduct => requestProduct.Product)
             .FirstOrDefaultAsync(r => r.Id == requestDto.RequestId);
 
         if (request is null)
         {
-            return new ResponseErrorDto
-            {
-                Status = 400,
-                Title = "Request not found",
-                Detail = $"The request with id {requestDto.RequestId} was not found"
-            };
+            return Error("Request not found",
+                $"The request with id {requestDto.RequestId} was not found",
+                400);
         }
         if (!request.Status.Equals(RequestStatus.Planned))
         {
-            return new ResponseErrorDto
-            {
-                Status = 400,
-                Title = "Invalid request status",
-                Detail = "The request status has changed and cannot be edited"
-            };
+            return Error("Invalid request status",
+                "The request status has changed and cannot be edited",
+                400);
         }
         
         request.RequestProducts ??= new List<RequestProduct>();
@@ -177,15 +164,12 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
             }
             else
             {
-                var addProduct = _context.Products.FirstOrDefault(x => x.Id == productDto.ProductId);
+                var addProduct = context.Products.FirstOrDefault(x => x.Id == productDto.ProductId);
                 if (addProduct is null)
                 {
-                    return new ResponseErrorDto()
-                    {
-                        Status = 400,
-                        Title = "Product not found",
-                        Detail = $"The product with id {productDto.ProductId} has not been found"
-                    };
+                    return Error("Product not found",
+                        $"The product with id {productDto.ProductId} has not been found",
+                        400);
                 }
                 request.RequestProducts.Add(new RequestProduct()
                 {
@@ -203,7 +187,7 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
         request.DeliveryTimeId = requestDto.DeliveryTimeId;
         await UpdateTotalsIntoCartAsync(request.CartId!.Value);
         await ApplyDiscountToCartAsync(request.CartId!.Value);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return request.ToCanteenRequestWithProductsDto();
     }
@@ -212,18 +196,15 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
         RequestInputDto dto)
     {
         
-        var request = await _context.Requests
+        var request = await context.Requests
             .Include(r => r.RequestProducts)!
             .FirstOrDefaultAsync(r => r.Id == dto.RequestId && r.UserId == userId);
             
         if (request is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Request not found",
-                Detail = $"Request '{dto.RequestId}' not found",
-            };
+            return Error("Request not found",
+                $"The request with id {dto.RequestId} was not found",
+                400);
         }
 
         if (request.RequestProducts is null)
@@ -247,57 +228,42 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
             });
         }
             
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return request;
     }
     //todo: make delete requestPorduct to cart
-    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> DeleteRequestIntoCartAsync(
+    public async Task<OneOf<ResponseErrorDto, RequestOutputDto>> DeleteRequestIntoCartAsync(
         int userId,
         int cartId,
         int requestId)
     {
-        var cart = await _context.Carts.Include(x=>x.Requests)
+        var cart = await context.Carts.Include(x=>x.Requests)
             .FirstOrDefaultAsync(x=>x.Id==cartId && x.UserId==userId);
         if (cart is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Cart not found",
-                Detail = $"The cart of user with id {userId} has not found"
-            };
+            return Error(" Cart not found",
+                $"The cart of user with id {userId} has not found",
+                400);
         }
         var request = cart.Requests!.FirstOrDefault(x=>x.Id==requestId);
         if (request is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Request not found",
-                Detail = $"The request with id {requestId} was not found"
-            };
+            return Error("Request not found",
+                $"The request with id {requestId} was not found",
+                400);
         }
         
-        _context.Requests.Remove(request);
-        var affectColumns =await _context.SaveChangesAsync();
+        context.Requests.Remove(request);
+        var affectColumns =await context.SaveChangesAsync();
         if (affectColumns > 0)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Failed to delete request",
-                Detail = $"The request with id {requestId} was not deleted"
-            };
+            return Error("Failed to delete request",
+                $"The request with id {requestId} was not deleted",
+                400);
         }
 
-        return new ResponseErrorDto()
-        {
-            Status = 200,
-            Title = "Request deleted successfully",
-            Detail = $"The request with id {requestId} was deleted successfully"
-                
-        };
-        
+        return request.ToCanteenRequestOutputDto();
+
     }
 
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> PlanningRequestIntoCartAsync(
@@ -305,15 +271,12 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
         DateTime newDateTime)
     {
        
-        var request = await _context.Requests.Include(x=> x.RequestProducts).FirstOrDefaultAsync(x=>x.Id==requestId);
+        var request = await context.Requests.Include(x=> x.RequestProducts).FirstOrDefaultAsync(x=>x.Id==requestId);
         if (request is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status  = 400,
-                Title = "Request not found",
-                Detail = $"The request with id {requestId} was not found"
-            };
+            return Error("Request not found",
+                $"The request with id {requestId} was not found",
+                400);
         }
 
         var newRequest = new CanteenRequest()
@@ -337,10 +300,10 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
             
         };
         
-        await _context.Requests.AddAsync(newRequest);
+        await context.Requests.AddAsync(newRequest);
         
         
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         await UpdateTotalsIntoCartAsync(newRequest.CartId.Value);
         await ApplyDiscountToCartAsync(newRequest.CartId.Value);
 

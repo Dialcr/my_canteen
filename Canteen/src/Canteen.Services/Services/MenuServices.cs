@@ -9,7 +9,7 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context)
         int idEstablishment,
         DateTimeOffset date)
     {
-        var result = _context.Menus.Include(x=>x.MenuProducts)
+        var result = context.Menus.Include(x=>x.MenuProducts)
             .ThenInclude(x=>x.Product)
             .ThenInclude(y=>y!.DietaryRestrictions)
             .Include(x=>x.MenuProducts)
@@ -21,12 +21,9 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context)
 
         if (result is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Menu not found",
-                Detail = $"The Menu of establishment with id {idEstablishment} in the date {date}  has not found"
-            };
+            return Error("Menu not found",
+                $"The Menu of establishment with id {idEstablishment} in the date {date}  has not found",
+                400);
         }
 
         return result;

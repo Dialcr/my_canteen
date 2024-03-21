@@ -12,18 +12,15 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
 {
     public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(ProductCategory categoryProduct)
     {
-        var result = await _context.Products.Include(x=>x.DietaryRestrictions)
+        var result = await context.Products.Include(x=>x.DietaryRestrictions)
             .Include(x=>x.ImagesUrl)
             .Where(x => x.Category == categoryProduct).ToListAsync();
 
         if (result is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Products not found",
-                Detail = $"The product with category {categoryProduct} has not been found"
-            };
+            return Error("Products not found",
+                $"The product with category {categoryProduct} has not been found",
+                400);
         }
 
         return result.Select(x => x.ToProductOutputDto()).ToList();
@@ -38,12 +35,9 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
 
         if (!result.Any())
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Menu have not products",
-                Detail = $"The menu with id {dayMenu.Id} of the establishment with id {dayMenu.EstablishmentId} have not products"
-            };
+            return Error("Menu have not products",
+                $"The menu with id {dayMenu.Id} of the establishment with id {dayMenu.EstablishmentId} have not products",
+                400);
         }
 
         return result;
@@ -51,18 +45,15 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
 
     public OneOf<ResponseErrorDto, Product> GetCantneeProductById(int productId)
     {
-        var result = _context.Products.Include(x=>x.DietaryRestrictions)
+        var result = context.Products.Include(x=>x.DietaryRestrictions)
             .Include(x=>x.ImagesUrl)
             .SingleOrDefault(x => x.Id == productId);
 
         if (result is null)
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Product not found",
-                Detail = $"The product with id {productId} has not been found"
-            };
+            return Error("Product not found",
+                $"The product with id {productId} has not been found",
+                400);
         }
         return result;
     }
@@ -70,17 +61,14 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
 
     public OneOf<ResponseErrorDto,ICollection<ProductOutputDto>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {
-        var result =  _context.Products.Include(x=>x.DietaryRestrictions)
+        var result =  context.Products.Include(x=>x.DietaryRestrictions)
             .Include(x=>x.ImagesUrl)
-                .Where(x => x.DietaryRestrictions!.Any(y => y.Description == dietaryRestriction));
+            .Where(x => x.DietaryRestrictions!.Any(y => y.Description == dietaryRestriction));
         if (!result.Any())
         {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "Products not found",
-                Detail = $"The product with dietary restriction {dietaryRestriction} has not been found"
-            };
+            return Error("Products not found",
+                $"The product with dietary restriction {dietaryRestriction} has not been found",
+                400);
         }
         return result.Select(x => x.ToProductOutputDto()).ToList();
     }

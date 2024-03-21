@@ -5,18 +5,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Canteen.Services.IpAdress;
 
-public class IpAddressServices
+public class IpAddressServices(ILogger<IpAddressServices> logger,
+    EntitiesContext entitiesContext)
 {
-    readonly ILogger<IpAddressServices> _logger;
-    readonly EntitiesContext entitiesContext;
-
-    public IpAddressServices(
-        ILogger<IpAddressServices> logger,
-        EntitiesContext entitiesContext)
-    {
-        _logger = logger;
-        this.entitiesContext = entitiesContext;
-    }
+    
 
     public string GetClientIp(HttpContext httpContext)
     {
@@ -26,7 +18,7 @@ public class IpAddressServices
 
             if (clientIpAddress is not null)
             {
-                _logger.LogDebug("User IP addresses: {ipAddresses}", clientIpAddress);
+                logger.LogDebug("User IP addresses: {ipAddresses}", clientIpAddress);
 
                 if (!clientIpAddress.Contains(','))
                     return clientIpAddress;

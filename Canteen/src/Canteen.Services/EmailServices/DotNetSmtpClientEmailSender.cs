@@ -19,8 +19,8 @@ public class DotNetSmtpClientEmailSender : IEmailSender
     {
         this.logger = logger;
         var settings = emailSettings.Value;
-        this.fromAddress = settings.EmailAddress;
-        this.displayName = settings.EmailAddressDisplay;
+        fromAddress = settings.EmailAddress;
+        displayName = settings.EmailAddressDisplay;
 
         smtpClient = new SmtpClient
         {

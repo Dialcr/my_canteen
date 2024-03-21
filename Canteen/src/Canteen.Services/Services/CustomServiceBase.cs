@@ -1,13 +1,15 @@
 using Canteen.DataAccess;
+using Canteen.Services.Dto;
 
 namespace Canteen.Services.Services;
 
-public class CustomServiceBase
+public class CustomServiceBase(EntitiesContext context)
 {
-    protected readonly EntitiesContext _context;
-
-    public CustomServiceBase(EntitiesContext context)
-    {
-        this._context = context;
-    }
+    protected ResponseErrorDto Error(string title, string details, int status)
+        => new()
+        {
+            Status = status,
+            Detail = details,
+            Title = title
+        };
 }
