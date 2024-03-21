@@ -14,7 +14,7 @@ public class CanteenOrderServices : CustomServiceBase
         _menuServices = menuServices;
     }
 
-    public async Task<OneOf<ResponseErrorDto, Order>> ApplyDiscountToOrder(
+    public async Task<OneOf<ResponseErrorDto, Order>> ApplyDiscountToOrderAsync(
         int orderId)
     {
         var order = await _context.Orders.FindAsync(orderId);
@@ -22,7 +22,7 @@ public class CanteenOrderServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Order not found",
                 Detail = $"The order with id {orderId} has not found"
             };
@@ -50,14 +50,14 @@ public class CanteenOrderServices : CustomServiceBase
         return order;
     }
 
-    public async Task<OneOf<ResponseErrorDto, Order>> UpdateTotals(int orderId)
+    public async Task<OneOf<ResponseErrorDto, Order>> UpdateTotalsAsync(int orderId)
     {
         var order = await _context.Orders.Include(x => x.Requests).FirstOrDefaultAsync(x => x.Id == orderId);
         if (order is null)
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Order not found",
                 Detail = $"The order with id {orderId} has not found"
             };
@@ -71,7 +71,7 @@ public class CanteenOrderServices : CustomServiceBase
 
     }
 
-    public async Task<OneOf<ResponseErrorDto, Order>> CloseOrderIfAllRequestsClosed(int orderId)
+    public async Task<OneOf<ResponseErrorDto, Order>> CloseOrderIfAllRequestsClosedAsync(int orderId)
     {
         var order = await _context.Orders.Include(o => o.Requests)
             .FirstOrDefaultAsync(o => o.Id == orderId && o.Status == OrderStatus.Created);
@@ -80,17 +80,15 @@ public class CanteenOrderServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status  = 404,
+                Status  = 400,
                 Title = "Order not found",
                 Detail = $"The order with id {orderId} has not found with status {OrderStatus.Created}"
             };
         }
-        //si todas estan en estado cancelada la orden se cancela
         if (order.Requests!.All(r => r.Status == RequestStatus.Cancelled))
         {
             order.Status = OrderStatus.Cancelled;
         }
-        // si todas estan entregadas o canceladas la orden se cierra
         else if (order.Requests!.All(r => r.Status == RequestStatus.Delivered 
                                           || r.Status == RequestStatus.Cancelled))
         {
@@ -101,7 +99,7 @@ public class CanteenOrderServices : CustomServiceBase
         return order;
     }
 
-    public async Task<OneOf<ResponseErrorDto, Order>> CancelOrder(int orderId)
+    public async Task<OneOf<ResponseErrorDto, Order>> CancelOrderAsync(int orderId)
     {
         var order = await _context.Orders.Include(x => x.Requests)!.
             ThenInclude(request => request.RequestProducts!)
@@ -111,7 +109,7 @@ public class CanteenOrderServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Order not found",
                 Detail = $"The order with id {orderId} has not found with status {OrderStatus.Created}"
             };
@@ -129,7 +127,6 @@ public class CanteenOrderServices : CustomServiceBase
             foreach (var dayProduct in originDayMenu.MenuProducts!)
             {
             
-                //if (response.RequestProducts.Contains(dayProduct.CanteenProductId)) dayProduct.Quantity--;
                 var requestproduct = orderRequest.RequestProducts!.FirstOrDefault(x =>
                     x.ProductId == dayProduct.CanteenProductId);
                 if ( requestproduct is not null)
@@ -140,30 +137,22 @@ public class CanteenOrderServices : CustomServiceBase
            
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Request not found",
                 Detail = $"Request with id {orderRequest.Id} and status {RequestStatus.Planned} not found"
             };
         }
-        await UpdateTotals(orderId);
-        await ApplyDiscountToOrder(orderId);
-        await CloseOrderIfAllRequestsClosed(orderId);
+        await UpdateTotalsAsync(orderId);
+        await ApplyDiscountToOrderAsync(orderId);
+        await CloseOrderIfAllRequestsClosedAsync(orderId);
     
         order.Status = OrderStatus.Cancelled;
         await _context.SaveChangesAsync();
         return order;
     }
     
-    public async Task<OneOf<ResponseErrorDto, Order>> CreateOrder(CanteenCart cart)
+    public async Task<Order> CreateOrderAsync(CanteenCart cart)
     {
-        if (cart.Requests is null || !cart.Requests.Any())
-        {
-            return new ResponseErrorDto()
-            {
-                Status = 400,
-                Title = "cart have not request",
-            };
-        }
         var newOrder = new Order
         {
             CreatedAt = DateTime.Now,
@@ -172,9 +161,7 @@ public class CanteenOrderServices : CustomServiceBase
             EstablishmentId = cart.EstablishmentId,
             PrductsTotalAmount =  cart.Requests.Sum(x=>x.TotalAmount),
             DeliveryTotalAmount = cart.Requests.Sum(x=>x.DeliveryAmount),
-            UserId = cart.UserId,
-            //ProductTotalDiscount = 0,
-            //DeliveryTotalDiscount = 0
+            UserId = cart.UserId
 
         };
         _context.Orders.Add(newOrder);
@@ -185,7 +172,7 @@ public class CanteenOrderServices : CustomServiceBase
 
     
 
-    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> EditRequestIntoOrder(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> EditRequestIntoOrderAsync(
         EditRequestDto requestDto)
     {
        
@@ -197,7 +184,7 @@ public class CanteenOrderServices : CustomServiceBase
         {
             return new ResponseErrorDto
             {
-                Status = 404,
+                Status = 400,
                 Title = "Request not found",
                 Detail = $"The request with id {requestDto.RequestId} was not found"
             };
@@ -214,23 +201,18 @@ public class CanteenOrderServices : CustomServiceBase
             };
         }
 
-        //var originalProducts = request.Products.ToList();
         request.RequestProducts ??= new List<RequestProduct>();
         var requestProducts = new List<RequestProduct>();
         foreach (var product in requestDto.Products)
         {
             var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
-            /*
-            var aviableProduct = _context.MenuProducts.Include(x => x.Product)
-                .SingleOrDefault(x=>x.Id == product.MenuProductId);
-            */
             var aviableProduct = _context.MenuProducts.Include(x => x.Product)
                 .FirstOrDefault(x=>x.CanteenProductId == product.ProductId && x.Menu!.Date.Date == request.DeliveryDate.Date);
             if (aviableProduct is null)
             {
                 return new ResponseErrorDto()
                 {
-                    Status = 404,
+                    Status = 400,
                     Title = "Product not found",
                     Detail = $"The product with id {product.ProductId} has not been found"
                 };
@@ -292,14 +274,14 @@ public class CanteenOrderServices : CustomServiceBase
         request.DeliveryLocation = requestDto.DeliveryLocation;
         request.DeliveryAmount = requestDto.DeliveryAmount;
         request.DeliveryTimeId = requestDto.DeliveryTimeId;
-        await UpdateTotals(request.OrderId!.Value);
-        await ApplyDiscountToOrder(request.OrderId!.Value);
+        await UpdateTotalsAsync(request.OrderId!.Value);
+        await ApplyDiscountToOrderAsync(request.OrderId!.Value);
         request.TotalAmount = request.RequestProducts.Sum(x=>x.UnitPrice * x.Quantity);
         await _context.SaveChangesAsync();
 
         return request;
     }
-    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> PlanningRequestIntoOrder(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> PlanningRequestIntoOrderAsync(
         int requestId,
         int establishmentId,
         DateTime newDateTime)
@@ -313,7 +295,7 @@ public class CanteenOrderServices : CustomServiceBase
         {
             return new ResponseErrorDto
             {
-                Status = 404,
+                Status = 400,
                 Title = "Request not found",
                 Detail = $"The request with id {requestId} was not found"
             };
@@ -335,8 +317,7 @@ public class CanteenOrderServices : CustomServiceBase
         {
             return error;
         }
-        //var availableProductsResult =  GetAviableProduct(dayMenu,request);
-        CanteenRequest newCanteenRequest = new CanteenRequest()
+        var newCanteenRequest = new CanteenRequest()
         {
             DeliveryDate = newDateTime,
             DeliveryLocation = request.DeliveryLocation,
@@ -377,13 +358,8 @@ public class CanteenOrderServices : CustomServiceBase
         }
         _context.Requests.Add(newCanteenRequest);
         await _context.SaveChangesAsync();
-        await UpdateTotals(request.OrderId!.Value);
-        /*
-         var order = await _context.Orders.FirstOrDefaultAsync(x=>x.Id==request.OrderId);
-        order!.PrductsTotalAmount += newCanteenRequest.TotalAmount;
-        order.DeliveryTotalAmount += newCanteenRequest.DeliveryAmount;
-        */
-        var discount = await ApplyDiscountToOrder(request.OrderId!.Value);
+        await UpdateTotalsAsync(request.OrderId!.Value);
+        var discount = await ApplyDiscountToOrderAsync(request.OrderId!.Value);
         if (discount.TryPickT0(out var discountError, out _))
         {
             return discountError;
@@ -391,10 +367,8 @@ public class CanteenOrderServices : CustomServiceBase
         return newCanteenRequest;
 
     }
-    public async Task<OneOf<ResponseErrorDto, RequestOutputDto>> CancelRequestIntoOrder(int requestId)
+    public async Task<OneOf<ResponseErrorDto, RequestOutputDto>> CancelRequestIntoOrderAsync(int requestId)
     {
-        var re = new CanteenRequest();
-        var a = re.OrderId is not null; 
         var request = _context.Requests.Include(x => x.Order)
             .Include(x => x.RequestProducts)
             .Include(x => x.Order)
@@ -407,13 +381,11 @@ public class CanteenOrderServices : CustomServiceBase
         {
             request.Status = RequestStatus.Cancelled;
 
-            Menu originDayMenu = _context.Menus
+            var originDayMenu = _context.Menus
                 .Include(x=>x.MenuProducts)
                 .SingleOrDefault(x => x.Date.Date == request.DeliveryDate.Date! && x.EstablishmentId == request.Order!.EstablishmentId)!;
             foreach (var dayProduct in originDayMenu.MenuProducts!)
             {
-            
-                //if (response.RequestProducts.Contains(dayProduct.CanteenProductId)) dayProduct.Quantity--;
                 var requestproduct = request.RequestProducts!.FirstOrDefault(x =>
                     x.ProductId == dayProduct.CanteenProductId);
                 if ( requestproduct is not null)
@@ -422,9 +394,9 @@ public class CanteenOrderServices : CustomServiceBase
                 }
             };
             
-            await UpdateTotals(request.OrderId!.Value);
-            await ApplyDiscountToOrder(request.OrderId!.Value);
-            await CloseOrderIfAllRequestsClosed(request.OrderId.Value);
+            await UpdateTotalsAsync(request.OrderId!.Value);
+            await ApplyDiscountToOrderAsync(request.OrderId!.Value);
+            await CloseOrderIfAllRequestsClosedAsync(request.OrderId.Value);
             
             await _context.SaveChangesAsync();
             return request.ToCanteenRequestOutputDto();
@@ -432,13 +404,13 @@ public class CanteenOrderServices : CustomServiceBase
 
         return new ResponseErrorDto()
         {
-            Status = 404,
+            Status = 400,
             Title = "Request not found",
             Detail = $"Request with id {requestId} and status {RequestStatus.Planned} not found"
         };
     }
 
-    public async Task<OneOf<ResponseErrorDto, OrderOutputDto>> GetOrderByUserId(int userId)
+    public async Task<OneOf<ResponseErrorDto, OrderOutputDto>> GetOrderByUserIdAsync(int userId)
     {
         var order = await _context.Orders
             .Include(x => x.Requests)

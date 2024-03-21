@@ -20,31 +20,20 @@ public class CanteenStablishmentController : ControllerBase
 
     [HttpGet]
     [Route("getAllsEstablishments")]
-    [ProducesResponseType(typeof(ICollection<EstablishmentOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(IEnumerable<EstablishmentOutputDto>), StatusCodes.Status200OK)]
     public IActionResult GetAllSEstablishments()
     {
-        var establishments =  _establishmentService.GetAllEstablishmentsAsync();
-
-        if (establishments.TryPickT0(out var error, out var stablList))
-        {
-            _logger.LogError("There are no establishment to be found {error}", error.Detail);
-
-            return NotFound();
-        }
-
-        _logger.LogInformation("All Establishment list");
-
-        return Ok(stablList);
+        var establishments =  _establishmentService.GetAllEstablishments();
+        return Ok(establishments);
     }
 
     [HttpGet]
     [Route("getEstablishmentById")]
     [ProducesResponseType(typeof(EstablishmentOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetEstablishmentById(int id)
     {
-        var stablish = await _establishmentService.GetEstablishmentById(id);
+        var stablish = await _establishmentService.GetEstablishmentByIdAsync(id);
 
         if (stablish.TryPickT0(out var error, out var establishment))
         {
@@ -53,24 +42,6 @@ public class CanteenStablishmentController : ControllerBase
         }
 
         _logger.LogInformation("Establishment found correctly");
-
-        return Ok(establishment);
-    }
-    [HttpGet]
-    [Route("getAllEstablishment")]
-    [ProducesResponseType(typeof(ICollection<EstablishmentOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    public IActionResult GetAllEstablishment()
-    {
-        var stablish =  _establishmentService.GetAllEstablishment();
-
-        if (stablish.TryPickT0(out var error, out var establishment))
-        {
-            _logger.LogError(error.Detail);
-            return NotFound();
-        }
-
-        _logger.LogInformation("Establishments found correctly");
 
         return Ok(establishment);
     }

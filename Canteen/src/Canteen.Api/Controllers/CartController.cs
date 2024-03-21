@@ -16,11 +16,11 @@ public class CartController : ControllerBase
     [HttpGet]
     [Route("getCart/{userId}")]
     [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
 
     public async Task<IActionResult> GetCart(int userId)
     {
-        var result = await _cartServices.GetCartByUserId(userId);
+        var result = await _cartServices.GetCartByUserIdAsync(userId);
         if (result.TryPickT0(out var error, out var response))
         {
             return NotFound(error);
@@ -30,19 +30,15 @@ public class CartController : ControllerBase
     [HttpPatch]
     [Route("checkout")]
     [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(IEnumerable<RequestInputDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApplyDiscountToCart(int cardId)
     {
-        var result = await _cartServices.Checkout(cardId);
-        if (result.TryPickT0(out var error, out var response))
+        var result = await _cartServices.CheckoutAsync(cardId);
+        if (result.TryPickT0(out var list, out var response))
         {
-            return BadRequest(error);
+            return BadRequest(list);
         }
-        else if (response.TryPickT0(out var collection, out var order))
-        {
-            return BadRequest(collection);
-        }
-        return Ok(response.AsT1);
+        return Ok(response);
     } 
     
     [HttpPatch]
@@ -51,7 +47,7 @@ public class CartController : ControllerBase
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteRequestIntoCart(int userId, int cartId, int requestId)
     {
-        var result = await _cartServices.DeleteRequestIntoCart(userId, cartId, requestId);
+        var result = await _cartServices.DeleteRequestIntoCartAsync(userId, cartId, requestId);
         if (result.TryPickT0(out var error, out var response))
         {
             return BadRequest(error);

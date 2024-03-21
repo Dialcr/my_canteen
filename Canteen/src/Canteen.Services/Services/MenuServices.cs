@@ -28,7 +28,7 @@ public class MenuServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Menu not found",
                 Detail = $"The Menu of establishment with id {idEstablishment} in the date {date}  has not found"
             };

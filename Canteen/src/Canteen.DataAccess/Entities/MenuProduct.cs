@@ -19,7 +19,4 @@ public class MenuProduct
 
     [ForeignKey(nameof(MenuId))]
     public Menu? Menu { get; set; }
-
-    //[Required]
-    //public decimal Price { get; set; }
 }

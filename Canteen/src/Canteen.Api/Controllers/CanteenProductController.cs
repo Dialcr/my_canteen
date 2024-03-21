@@ -22,9 +22,9 @@ public class CanteenProductController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
-    [Route("getCantneeProductById")]
-    public IActionResult GetCantneeProductById(int productId)   
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    [Route("GetCanteenProductById")]
+    public IActionResult GetCanteenProductById(int productId)   
     {
         var result = _productServices.GetCantneeProductById(productId);
 
@@ -42,11 +42,11 @@ public class CanteenProductController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("getCantneeProductsByCategory")]
     public IActionResult GetCantneeProductsByCategory(ProductCategory categoryProduct)
     {
-        var result = _productServices.GetCantneeProductsByCategory(categoryProduct);
+        var result = _productServices.GetCantneeProductsByCategoryAsync(categoryProduct);
 
         if (result.Result.TryPickT0(out var error, out var response))
         {
@@ -62,7 +62,7 @@ public class CanteenProductController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("getCantneeProductsByDietaryRestrictions")]
     public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {

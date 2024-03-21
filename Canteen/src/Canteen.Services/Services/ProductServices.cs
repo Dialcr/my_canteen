@@ -15,7 +15,7 @@ public class ProductServices : CustomServiceBase
     {
     }
 
-    public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategory(ProductCategory categoryProduct)
+    public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(ProductCategory categoryProduct)
     {
         var result = await _context.Products.Include(x=>x.DietaryRestrictions)
             .Include(x=>x.ImagesUrl)
@@ -25,7 +25,7 @@ public class ProductServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Products not found",
                 Detail = $"The product with category {categoryProduct} has not been found"
             };
@@ -45,7 +45,7 @@ public class ProductServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Menu have not products",
                 Detail = $"The menu with id {dayMenu.Id} of the establishment with id {dayMenu.EstablishmentId} have not products"
             };
@@ -64,7 +64,7 @@ public class ProductServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Product not found",
                 Detail = $"The product with id {productId} has not been found"
             };
@@ -82,7 +82,7 @@ public class ProductServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Products not found",
                 Detail = $"The product with dietary restriction {dietaryRestriction} has not been found"
             };

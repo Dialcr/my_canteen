@@ -11,19 +11,9 @@ public class MenuProductOutputDto
     //product info
     public int ProductId { get; set; }
 
-    public string Name { get; set; }
+    public ProductOutputDto? ProductOutputDto { get; set; }
 
-    public string Description { get; set; }
-
-    public ProductCategory Category { get; set; }
-
-    public decimal Price { get; set; }
-
-    public ICollection<DietaryRestriction>? DietaryRestrictions { get; set; }
     
-    public string Ingredients { get; set; }
-    
-    public ICollection<ProductImageUrl>? ImagesUrl { get; set; }
 
 }
 
@@ -38,15 +28,7 @@ public static class MenuProductExtention
             MenuProductId = menuProduct.Id,
             Quantity = menuProduct.Quantity,
             ProductId = menuProduct.Id,
-            Name = menuProduct.Product!.Name,
-            Description = menuProduct.Product.Description,
-            Category = menuProduct.Product.Category,
-            Price = menuProduct.Product.Price,
-            DietaryRestrictions = menuProduct.Product.DietaryRestrictions,
-            Ingredients = menuProduct.Product.Ingredients,
-            ImagesUrl = menuProduct.Product.ImagesUrl
-            
-            
+            ProductOutputDto = menuProduct.Product!.ToProductOutputDto(),
         };
 
     }

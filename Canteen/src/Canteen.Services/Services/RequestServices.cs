@@ -24,7 +24,7 @@ public class RequestServices : CustomServiceBase
         _menuServices = menuServices;
     }
 
-    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> AddProductsToRequest(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> AddProductsToRequestAsync(
         int requestId,
         List<int> productIds,
         DateTime dateTime)
@@ -32,7 +32,6 @@ public class RequestServices : CustomServiceBase
         var request = await _context.Requests
             .Include(r => r.Order)
             .Include(r => r.RequestProducts)
-            //.ThenInclude(x=>x.Product)
             .SingleOrDefaultAsync(r =>
                 r.Id == requestId &&
                 r.Status.Equals(RequestStatus.Planned));
@@ -41,7 +40,7 @@ public class RequestServices : CustomServiceBase
         {
             return new ResponseErrorDto
             {
-                Status = 404,
+                Status = 400,
                 Title = "Request not found",
                 Detail = $"The request with id {requestId} was not found or is not in the planned status"
             };
@@ -91,20 +90,18 @@ public class RequestServices : CustomServiceBase
         request.RequestProducts ??= new List<RequestProduct>();
         productsToAdd.ForEach(x =>
         {
-            //request.RequestProducts.Add(x);
             request.RequestProducts.Add(new RequestProduct()
             {
                 ProductId = x.Id,
                 RequestId = request.Id
             });
         });
-        //request.Products.Add(productsToAdd);
         await _context.SaveChangesAsync();
 
         return request;
     }
 
-    public async Task<OneOf<ResponseErrorDto, CartOutputDto>> CreateRequest(
+    public async Task<OneOf<ResponseErrorDto, CartOutputDto>> CreateRequestAsync(
         CreateRequestInputDto createRequestInputDto,
         int userId)
     {
@@ -121,10 +118,6 @@ public class RequestServices : CustomServiceBase
                 EstablishmentId = createRequestInputDto.EstablishmentId
             };
             _context.Carts.Add(cart);
-             /*cart = await _context.Carts.Include(x=>x.Requests)
-                .FirstOrDefaultAsync(x=> x.EstablishmentId==createRequestInputDto.EstablishmentId
-                                         && x.UserId==userId);
-                */
         }
 
         var estableshimentProducts =_context.Products.Where(x => x.EstablishmentId == createRequestInputDto.EstablishmentId);
@@ -198,7 +191,7 @@ public class RequestServices : CustomServiceBase
         return newCanteenRequest;
     }
 
-    public async Task<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>> RequestsList(int userId)
+    public async Task<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>> RequestsListAsync(int userId)
     {
         var requests = await _context.Requests
             .Include(x=>x.RequestProducts)
@@ -221,7 +214,7 @@ public class RequestServices : CustomServiceBase
         };
     }
 
-    public async Task<OneOf<ResponseErrorDto, List<CanteenRequest>>> HistoryRequest(int userId)
+    public async Task<OneOf<ResponseErrorDto, List<CanteenRequest>>> HistoryRequestAsync(int userId)
     {
         var requests = await _context.Requests
             .Where(x =>
@@ -247,7 +240,7 @@ public class RequestServices : CustomServiceBase
 
     
     
-    public async Task<OneOf<ResponseErrorDto, IEnumerable<Product>, CanteenRequest>> MoveRequestIntoOrder(
+    public async Task<OneOf<ResponseErrorDto, IEnumerable<ProductOutputDto>, RequestOutputDto>> MoveRequestIntoOrderAsync(
         int requestId,
         DateTime newDeliveryDate)
     {
@@ -262,7 +255,7 @@ public class RequestServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Request not found",
                 Detail = $"Request with id {requestId} and status {RequestStatus.Planned} not found"
             };
@@ -296,12 +289,11 @@ public class RequestServices : CustomServiceBase
         
         if (productsNotFounfd.Count > 0)
         {
-            return productsNotFounfd;
+            return productsNotFounfd.Select(x=>x.ToProductOutputDto()).ToList();
         }
 
         foreach (var dayProdcut in menuOriginDay.MenuProducts)
         {
-            //if (request.RequestProducts.Contains(dayProdcut.Product)) dayProdcut.Quantity--;
             var requestproduct = request.RequestProducts!.FirstOrDefault(x =>
                 x.ProductId == dayProdcut.CanteenProductId);
             if ( requestproduct is not null)
@@ -324,9 +316,9 @@ public class RequestServices : CustomServiceBase
         request.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
 
-        return request;
+        return request.ToCanteenRequestWithProductsDto();
     }
-    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> MoveRequestIntoCart(
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> MoveRequestIntoCartAsync(
         int requestId,
         DateTime newDeliveryDate)
     {
@@ -339,7 +331,7 @@ public class RequestServices : CustomServiceBase
         {
             return new ResponseErrorDto()
             {
-                Status = 404,
+                Status = 400,
                 Title = "Request not found",
                 Detail = $"Request with id {requestId} and status {RequestStatus.Planned} not found"
             };
@@ -420,7 +412,7 @@ public class RequestServices : CustomServiceBase
         return canteenRequest;
     }
     
-    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> DiscountFromInventary(CanteenRequest canteenRequest, int establishmentId)
+    public async Task<OneOf<ResponseErrorDto, CanteenRequest>> DiscountFromInventaryAsync(CanteenRequest canteenRequest, int establishmentId)
     {
         var menu = await _context.Menus.Include(menu => menu.MenuProducts!)
             .FirstOrDefaultAsync(x=>x.EstablishmentId == establishmentId 
@@ -432,7 +424,7 @@ public class RequestServices : CustomServiceBase
             {
                 return new ResponseErrorDto()
                 {
-                    Status = 404,
+                    Status = 400,
                     Title = "Product not found",
                 };
             }

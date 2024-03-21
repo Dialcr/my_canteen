@@ -10,25 +10,13 @@ public class EstablishmentService : CustomServiceBase
     {
     }
 
-    public OneOf<ResponseErrorDto, ICollection<EstablishmentOutputDto>> GetAllEstablishmentsAsync()
+    public IEnumerable<EstablishmentOutputDto> GetAllEstablishments()
     {
-        var allStablish = _context.Establishments;
-
-        if (!allStablish.Any())
-        {
-            return new ResponseErrorDto
-            {
-                Status = 404,
-                Title = "There are no Establishment",
-                Detail = "There are no Establishment to obtain"
-            };
-        }
-
-        var establismentList = allStablish.Select(x=>x.ToEstablishmentOutputDto());
-        return establismentList.ToList();
+        var allEstablishment = _context.Establishments.Select(x=>x.ToEstablishmentOutputDto());
+        return allEstablishment;
     }
 
-    public async Task<OneOf<ResponseErrorDto, EstablishmentOutputDto>> GetEstablishmentById(int id)
+    public async Task<OneOf<ResponseErrorDto, EstablishmentOutputDto>> GetEstablishmentByIdAsync(int id)
     {
         var establish = await _context.Establishments
             .Where(x => x.Id == id)
@@ -38,28 +26,12 @@ public class EstablishmentService : CustomServiceBase
         {
             return new ResponseErrorDto
             {
-                Status = 404,
+                Status = 400,
                 Title = "Establishment not found",
                 Detail = "Establishment not found"
             };
         }
 
         return establish.ToEstablishmentOutputDto();
-    }
-    public OneOf<ResponseErrorDto, ICollection<EstablishmentOutputDto>> GetAllEstablishment()
-    {
-        var establish = _context.Establishments;
-            
-        if (!establish.Any())
-        {
-            return new ResponseErrorDto
-            {
-                Status = 404,
-                Title = "Have not any establishment",
-                Detail = "Have not any establishment"
-            };
-        }
-        var establismentList = establish.Select(x=>x.ToEstablishmentOutputDto());
-        return establismentList.ToList();
     }
 }
