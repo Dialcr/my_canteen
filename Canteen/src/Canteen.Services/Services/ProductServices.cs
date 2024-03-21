@@ -8,13 +8,8 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Canteen.Services.Services;
 
-public class ProductServices : CustomServiceBase
+public class ProductServices(EntitiesContext context) : CustomServiceBase(context)
 {
-    public ProductServices(EntitiesContext context)
-        : base(context)
-    {
-    }
-
     public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(ProductCategory categoryProduct)
     {
         var result = await _context.Products.Include(x=>x.DietaryRestrictions)

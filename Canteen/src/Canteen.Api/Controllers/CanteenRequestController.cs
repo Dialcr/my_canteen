@@ -6,25 +6,12 @@ namespace Canteen.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CanteenRequestController : ControllerBase
+public class CanteenRequestController(ILogger<CanteenRequestController> logger,
+    RequestServices requestServices,
+    CanteenOrderServices orderServices, 
+    CartServices cartServices) : ControllerBase
 {
-    readonly RequestServices _requestServices;
-    readonly MenuServices _menuServices;
-    readonly ILogger<CanteenRequestController> _logger;
-    readonly CanteenOrderServices _orderServices;
-    private readonly CartServices _cartServices;
-    public CanteenRequestController(
-        ILogger<CanteenRequestController> logger,
-        RequestServices requestServices,
-        MenuServices menuServices,
-        CanteenOrderServices orderServices, CartServices cartServices)
-    {
-        _requestServices = requestServices;
-        _menuServices = menuServices;
-        _logger = logger;
-        _orderServices = orderServices;
-        _cartServices = cartServices;
-    }
+  
 
     [HttpGet]
     [ProducesResponseType(typeof(List<RequestOutputDto>), StatusCodes.Status200OK)]
@@ -32,15 +19,15 @@ public class CanteenRequestController : ControllerBase
     [Route("getRequestList")]
     public async Task<ActionResult<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>>> GetRequestList(int userId)
     {
-        var result = await _requestServices.RequestsListAsync(userId);
+        var result = await requestServices.RequestsListAsync(userId);
 
         if (result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return BadRequest(error);
         }
 
-        _logger.LogInformation($"All Request of user {userId} found correctly");
+        logger.LogInformation($"All Request of user {userId} found correctly");
         var requestList = response.Select(x => x.ToCanteenRequestWithProductsDto());
         return Ok(requestList);
     }
@@ -51,17 +38,17 @@ public class CanteenRequestController : ControllerBase
     [Route("getHistoryRequests")]
     public IActionResult GetHistoryRequests(int userId)
     {
-        var result = _requestServices.HistoryRequestAsync(userId);
+        var result = requestServices.HistoryRequestAsync(userId);
 
         if (result.Result.TryPickT0(out var error, out var response))
         {
 
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return BadRequest(error);
         }
 
 
-        _logger.LogInformation($"History Request of user {userId} found correctly");
+        logger.LogInformation($"History Request of user {userId} found correctly");
 
         return Ok(response.Select(x => x.ToCanteenRequestWithProductsDto()));
     }
@@ -73,16 +60,16 @@ public class CanteenRequestController : ControllerBase
     [Route("MoveRequestIntoOrder")]
     public async Task<ActionResult<OneOf<ResponseErrorDto, CanteenRequest>>> MoveRequestIntoOrder(int requestId, DateTime moveDate)
     {
-        var result = await _requestServices.MoveRequestIntoOrderAsync(requestId, moveDate);
+        var result = await requestServices.MoveRequestIntoOrderAsync(requestId, moveDate);
 
         if (result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return BadRequest(error);
         }
         else if (response.TryPickT0(out var products, out var request))
         {
-            _logger.LogError($"Products not available");
+            logger.LogError($"Products not available");
 
             return BadRequest(error);
         }
@@ -97,16 +84,16 @@ public class CanteenRequestController : ControllerBase
     public async Task<IActionResult> CreateRequest([FromBody] CreateRequestInputDto createRequestDto, int userId)
     {
         
-        var result = await _requestServices.CreateRequestAsync(createRequestDto, userId);
+        var result = await requestServices.CreateRequestAsync(createRequestDto, userId);
 
         if (result.TryPickT0(out var errorDto, out var cart))
         {
-            _logger.LogError(errorDto.Detail);
+            logger.LogError(errorDto.Detail);
 
             return NotFound(errorDto);
         }
-        await _cartServices.UpdateTotalsIntoCartAsync(cart.Id);
-        _logger.LogInformation($"Request created successfully ");
+        await cartServices.UpdateTotalsIntoCartAsync(cart.Id);
+        logger.LogInformation($"Request created successfully ");
         return Ok(cart);
     }
 
@@ -117,15 +104,15 @@ public class CanteenRequestController : ControllerBase
     public async Task<IActionResult> EditRequestIntoOrder([FromBody] EditRequestDto requestDto)
     {
 
-        var result = await _orderServices
+        var result = await orderServices
             .EditRequestIntoOrderAsync(requestDto);
 
         if (result.TryPickT0(out var error, out var request))
         {
-            _logger.LogError("Error during Editing proccess");
+            logger.LogError("Error during Editing proccess");
             return BadRequest(error);
         }
-        _logger.LogInformation("Successfuly Edited");
+        logger.LogInformation("Successfuly Edited");
         return Ok(request.ToCanteenRequestWithProductsDto());
         
     }
@@ -138,7 +125,7 @@ public class CanteenRequestController : ControllerBase
         [FromBody] PlanningRequestDto planningRequestDto)
     {
         
-        var result = await _orderServices.PlanningRequestIntoOrderAsync(requestId, planningRequestDto.EstablishmentId, 
+        var result = await orderServices.PlanningRequestIntoOrderAsync(requestId, planningRequestDto.EstablishmentId, 
             planningRequestDto.NewDateTime);
 
         if (result.TryPickT0(out var error, out var request))
@@ -155,7 +142,7 @@ public class CanteenRequestController : ControllerBase
         [FromBody] PlanningRequestDto planningRequestDto)
     {
         
-        var result = await _cartServices.PlanningRequestIntoCartAsync(requestId, 
+        var result = await cartServices.PlanningRequestIntoCartAsync(requestId, 
             planningRequestDto.NewDateTime);
 
         if (result.TryPickT0(out var error, out var request))
@@ -173,16 +160,16 @@ public class CanteenRequestController : ControllerBase
     [Route("getRequest")]
     public IActionResult GetRequest(int requestId)
     {
-        var result = _requestServices.GetRequerstInfoById(requestId);
+        var result = requestServices.GetRequerstInfoById(requestId);
 
         if (result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
             return BadRequest(error);
         }
 
-        _logger.LogInformation("Requests found correctly");
+        logger.LogInformation("Requests found correctly");
 
         return Ok(response);
     }
@@ -193,15 +180,15 @@ public class CanteenRequestController : ControllerBase
     [Route("cancelRequest")]
     public async Task<IActionResult> CancelRequestIntoOrder(int requestId)
     {
-        var result = await _orderServices.CancelRequestIntoOrderAsync(requestId);
+        var result = await orderServices.CancelRequestIntoOrderAsync(requestId);
 
         if (result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return BadRequest(error);
         }
 
-        _logger.LogInformation($"Request with id {requestId} canceled correctly");
+        logger.LogInformation($"Request with id {requestId} canceled correctly");
 
         return Ok(response);
     }
@@ -212,15 +199,15 @@ public class CanteenRequestController : ControllerBase
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> EditRequestIntoCart(EditRequestDto requestDto)
     {
-        var result = await _cartServices.EditRequestIntoCartAsync( requestDto);
+        var result = await cartServices.EditRequestIntoCartAsync( requestDto);
 
         if (result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return BadRequest(error);
         }
 
-        _logger.LogInformation($"Request with id {requestDto.RequestId} canceled correctly");
+        logger.LogInformation($"Request with id {requestDto.RequestId} canceled correctly");
 
         return Ok(response);
     }

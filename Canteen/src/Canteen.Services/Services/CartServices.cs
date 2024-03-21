@@ -1,22 +1,11 @@
 ﻿using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Dto;
-using Microsoft.AspNetCore.Http;
-using OneOf;
-using OneOf.Types;
 
 namespace Canteen.Services.Services;
 
-public class CartServices : CustomServiceBase
+public class CartServices(EntitiesContext context, CanteenOrderServices orderServices, RequestServices requestServices) : CustomServiceBase(context)
 {
-    private readonly CanteenOrderServices _orderServices;
-    private readonly RequestServices _requestServices;
-    public CartServices(EntitiesContext context, CanteenOrderServices orderServices, RequestServices requestServices) : base(context)
-    {
-        _orderServices = orderServices;
-        _requestServices = requestServices;
-    }
-
     public async Task<OneOf<IEnumerable<RequestInputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
     {
         var cart = await _context.Carts
@@ -48,7 +37,7 @@ public class CartServices : CustomServiceBase
                     }
                 })).ToList();
             }
-            var result =  _requestServices.AllProductsOk(request, menu!);
+            var result =  requestServices.AllProductsOk(request, menu!);
             if (result.TryPickT0(out var errorProducts, out var _))
             {
                 productsOutput = productsOutput.Concat(errorProducts).ToList();
@@ -61,8 +50,8 @@ public class CartServices : CustomServiceBase
             return productsOutput;
         }
         
-        await Task.WhenAll(cart.Requests.ToList().Select(request => _requestServices.DiscountFromInventaryAsync(request, cart.EstablishmentId)));
-        var order = await _orderServices.CreateOrderAsync(cart);
+        await Task.WhenAll(cart.Requests.ToList().Select(request => requestServices.DiscountFromInventaryAsync(request, cart.EstablishmentId)));
+        var order = await orderServices.CreateOrderAsync(cart);
        
         //todo: implemet payment method
 

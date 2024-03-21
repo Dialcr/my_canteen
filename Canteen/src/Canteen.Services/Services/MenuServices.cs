@@ -3,13 +3,8 @@ using Canteen.Services.Dto;
 
 namespace Canteen.Services.Services;
 
-public class MenuServices : CustomServiceBase
+public class MenuServices(EntitiesContext context) : CustomServiceBase(context)
 {
-    public MenuServices(EntitiesContext context)
-        : base(context)
-    {
-    }
-
     public OneOf<ResponseErrorDto, Menu>  GetMenuByEstablishmentAndDate(
         int idEstablishment,
         DateTimeOffset date)

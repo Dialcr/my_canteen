@@ -3,13 +3,8 @@ using Canteen.Services.Dto;
 
 namespace Canteen.Services.Services;
 
-public class EstablishmentService : CustomServiceBase
+public class EstablishmentService(EntitiesContext context) : CustomServiceBase(context)
 {
-    public EstablishmentService(EntitiesContext context)
-        : base(context)
-    {
-    }
-
     public IEnumerable<EstablishmentOutputDto> GetAllEstablishments()
     {
         var allEstablishment = _context.Establishments.Select(x=>x.ToEstablishmentOutputDto());

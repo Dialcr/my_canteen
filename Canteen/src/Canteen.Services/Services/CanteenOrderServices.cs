@@ -4,16 +4,8 @@ using Canteen.Services.Dto;
 
 namespace Canteen.Services.Services;
 
-public class CanteenOrderServices : CustomServiceBase
+public class CanteenOrderServices(EntitiesContext context, MenuServices menuServices) : CustomServiceBase(context)
 {
-    private readonly MenuServices _menuServices;
-
-    public CanteenOrderServices(EntitiesContext context, MenuServices menuServices)
-        : base(context)
-    {
-        _menuServices = menuServices;
-    }
-
     public async Task<OneOf<ResponseErrorDto, Order>> ApplyDiscountToOrderAsync(
         int orderId)
     {
@@ -311,7 +303,7 @@ public class CanteenOrderServices : CustomServiceBase
             };
         }
 
-        var dayMenuResult = _menuServices.GetMenuByEstablishmentAndDate(establishmentId, newDateTime);
+        var dayMenuResult = menuServices.GetMenuByEstablishmentAndDate(establishmentId, newDateTime);
 
         if (dayMenuResult.TryPickT0(out var error, out var dayMenu))
         {

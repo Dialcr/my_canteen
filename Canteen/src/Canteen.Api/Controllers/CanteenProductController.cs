@@ -7,18 +7,9 @@ namespace Canteen.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CanteenProductController : ControllerBase
+public class CanteenProductController(ProductServices productServices,
+    ILogger<CanteenProductController> logger) : ControllerBase
 {
-    readonly ProductServices _productServices;
-    readonly ILogger<CanteenProductController> _logger;
-
-    public CanteenProductController(
-        ProductServices productServices,
-        ILogger<CanteenProductController> logger)
-    {
-        _productServices = productServices;
-        _logger = logger;
-    }
 
     [HttpGet]
     [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
@@ -26,16 +17,16 @@ public class CanteenProductController : ControllerBase
     [Route("GetCanteenProductById")]
     public IActionResult GetCanteenProductById(int productId)   
     {
-        var result = _productServices.GetCantneeProductById(productId);
+        var result = productServices.GetCantneeProductById(productId);
 
         if (result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
             return BadRequest(error);
         }
 
-        _logger.LogInformation("CantneeProduct found correctly");
+        logger.LogInformation("CantneeProduct found correctly");
 
         return Ok(response.ToProductOutputDto());
     }
@@ -46,16 +37,16 @@ public class CanteenProductController : ControllerBase
     [Route("getCantneeProductsByCategory")]
     public IActionResult GetCantneeProductsByCategory(ProductCategory categoryProduct)
     {
-        var result = _productServices.GetCantneeProductsByCategoryAsync(categoryProduct);
+        var result = productServices.GetCantneeProductsByCategoryAsync(categoryProduct);
 
         if (result.Result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
             return BadRequest(error);
         }
 
-        _logger.LogInformation($"All CantneeProduct of category  found correctly {categoryProduct}");
+        logger.LogInformation($"All CantneeProduct of category  found correctly {categoryProduct}");
 
         return Ok(response);
     }
@@ -66,16 +57,16 @@ public class CanteenProductController : ControllerBase
     [Route("getCantneeProductsByDietaryRestrictions")]
     public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {
-        var result = _productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
+        var result = productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
 
         
         if (result.TryPickT0(out var error, out var response))
         {
-            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
 
             return BadRequest(error);
         }
-        _logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
+        logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
 
         return Ok(result);
     }

@@ -5,25 +5,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Canteen.Services.Services;
 
-public class RequestServices : CustomServiceBase
+public class RequestServices(
+    EntitiesContext context,
+    ILogger<RequestServices> logger,
+    ProductServices services,
+    MenuServices menuServices) : CustomServiceBase(context)
 {
-    private readonly ILogger<RequestServices> _logger;
-    private readonly ProductServices _services;
-    private readonly MenuServices _menuServices;
-    
-
-    public RequestServices(
-        EntitiesContext context,
-        ILogger<RequestServices> logger,
-        ProductServices services,
-        MenuServices menuServices)
-        : base(context)
-    {
-        _logger = logger;
-        _services = services;
-        _menuServices = menuServices;
-    }
-
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> AddProductsToRequestAsync(
         int requestId,
         List<int> productIds,
@@ -46,7 +33,7 @@ public class RequestServices : CustomServiceBase
             };
         }
 
-        var dayMenuResult = _menuServices.GetMenuByEstablishmentAndDate(requestId, dateTime);
+        var dayMenuResult = menuServices.GetMenuByEstablishmentAndDate(requestId, dateTime);
 
         if (dayMenuResult.IsT1)
         {
@@ -55,7 +42,7 @@ public class RequestServices : CustomServiceBase
 
         var dayMenu = dayMenuResult.AsT1;
 
-        var availableProductsResult = _services.GetCantneeProductsByMenu(dayMenu);
+        var availableProductsResult = services.GetCantneeProductsByMenu(dayMenu);
 
         if (availableProductsResult.IsT0)
         {
@@ -204,7 +191,7 @@ public class RequestServices : CustomServiceBase
         if (requests.Count > 0)
             return requests;
 
-        _logger.LogError("The user with id {userId} has no requests", userId);
+        logger.LogError("The user with id {userId} has no requests", userId);
 
         return new ResponseErrorDto()
         {
@@ -228,7 +215,7 @@ public class RequestServices : CustomServiceBase
             return requests;
         }
 
-        _logger.LogError("The user with id {userId} has no requests delivered or cancelled", userId);
+        logger.LogError("The user with id {userId} has no requests delivered or cancelled", userId);
 
         return new ResponseErrorDto()
         {
@@ -261,7 +248,7 @@ public class RequestServices : CustomServiceBase
             };
         }
 
-        var menuChangeDayResult = _menuServices.GetMenuByEstablishmentAndDate(request.Order.EstablishmentId
+        var menuChangeDayResult = menuServices.GetMenuByEstablishmentAndDate(request.Order.EstablishmentId
             , newDeliveryDate);
 
         if (menuChangeDayResult.TryPickT0(out var error1, out var menuChangeDay))
@@ -269,12 +256,12 @@ public class RequestServices : CustomServiceBase
             return error1;
         }
 
-        var menuOrigineDayResult = _menuServices.GetMenuByEstablishmentAndDate(request.Order.EstablishmentId
+        var menuOrigineDayResult = menuServices.GetMenuByEstablishmentAndDate(request.Order.EstablishmentId
             , request.DeliveryDate);
 
         if (menuOrigineDayResult.TryPickT0(out var error2, out var menuOriginDay))
         {
-            _logger.LogError($"Error status {error2.Status} Detail:{error2.Detail}");
+            logger.LogError($"Error status {error2.Status} Detail:{error2.Detail}");
             return error2;
         }
 

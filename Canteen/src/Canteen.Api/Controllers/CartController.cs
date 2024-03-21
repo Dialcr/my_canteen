@@ -5,14 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Canteen.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class CartController : ControllerBase
+public class CartController(CartServices cartServices) : ControllerBase
 {
-    private readonly CartServices _cartServices;
-
-    public CartController(CartServices cartServices)
-    {
-        _cartServices = cartServices;
-    }
     [HttpGet]
     [Route("getCart/{userId}")]
     [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
@@ -20,7 +14,7 @@ public class CartController : ControllerBase
 
     public async Task<IActionResult> GetCart(int userId)
     {
-        var result = await _cartServices.GetCartByUserIdAsync(userId);
+        var result = await cartServices.GetCartByUserIdAsync(userId);
         if (result.TryPickT0(out var error, out var response))
         {
             return NotFound(error);
@@ -33,7 +27,7 @@ public class CartController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<RequestInputDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApplyDiscountToCart(int cardId)
     {
-        var result = await _cartServices.CheckoutAsync(cardId);
+        var result = await cartServices.CheckoutAsync(cardId);
         if (result.TryPickT0(out var list, out var response))
         {
             return BadRequest(list);
@@ -47,7 +41,7 @@ public class CartController : ControllerBase
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteRequestIntoCart(int userId, int cartId, int requestId)
     {
-        var result = await _cartServices.DeleteRequestIntoCartAsync(userId, cartId, requestId);
+        var result = await cartServices.DeleteRequestIntoCartAsync(userId, cartId, requestId);
         if (result.TryPickT0(out var error, out var response))
         {
             return BadRequest(error);
