@@ -1,6 +1,6 @@
 ﻿namespace Canteen.Services.Dto;
 
-public class MenuProductInypodDto
+public class MenuProductInputDto
 {
     public Product Product { get; set; }
     public int ProductId { get; set; }

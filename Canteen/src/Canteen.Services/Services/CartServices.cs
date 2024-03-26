@@ -6,7 +6,7 @@ namespace Canteen.Services.Services;
 
 public class CartServices(EntitiesContext context, CanteenOrderServices orderServices, RequestServices requestServices) : CustomServiceBase(context)
 {
-    public async Task<OneOf<IEnumerable<RequestInputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
+    public async Task<OneOf<IEnumerable<RequestProductOutputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
     {
         var cart = await context.Carts
             .Include(x => x.Requests)
@@ -14,7 +14,7 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
             .ThenInclude(requestProduct => requestProduct.Product)
             .SingleOrDefaultAsync(x => x.Id == cartId);
         
-        var productsOutput  = new List<RequestInputDto>(); 
+        var productsOutput  = new List<RequestProductOutputDto>(); 
         if (cart is null)
         {
             return productsOutput;
@@ -26,21 +26,19 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
                                         && x.Date.Date == request.DeliveryDate.Date);
             if (menu is null)
             {
-                productsOutput = productsOutput.Concat(request.RequestProducts.Select(x => new RequestInputDto()
-                {
-                    RequestId = request.Id,
-                    Product = new ProductDayDto
-                    {
-                        Product = x.Product,
-                        Quantity = x.Quantity,
-                        ProductId = x.ProductId
-                    }
-                })).ToList();
+                
+                
+                productsOutput = productsOutput
+                    .Concat(request.RequestProducts
+                        .Select(x => x.ToRequestProductOutputDto())).ToList();
             }
-            var result =  requestServices.AllProductsOk(request, menu!);
-            if (result.TryPickT0(out var errorProducts, out var _))
+            else
             {
-                productsOutput = productsOutput.Concat(errorProducts).ToList();
+                var result =  requestServices.AllProductsOk(request, menu!);
+                if (result is not null)
+                {
+                    productsOutput = productsOutput.Concat(result).ToList();
+                }
             }
             
         }
@@ -70,18 +68,18 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
                 "Cart not found",
                 $"The order with id {cardId} has not found",
                 400
-                );
+            );
         }
 
         var totalDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
-                                                          && x.DiscountType.Equals(DiscountType.TotalAmount)
-                                                          && cart.PrductsTotalAmount <= x.TotalNecesity)
+                                                         && x.DiscountType.Equals(DiscountType.TotalAmount)
+                                                         && cart.PrductsTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
 
         var delivaryDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
-                                                             && x.DiscountType.Equals(DiscountType.DeliveryAmount)
-                                                             && cart.DeliveryTotalAmount <= x.TotalNecesity)
+                                                            && x.DiscountType.Equals(DiscountType.DeliveryAmount)
+                                                            && cart.DeliveryTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
 

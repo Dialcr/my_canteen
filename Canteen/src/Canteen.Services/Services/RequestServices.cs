@@ -324,43 +324,26 @@ public class RequestServices(
             400);
     }
     
-    public OneOf<ICollection<RequestInputDto>, CanteenRequest> AllProductsOk(
+    public ICollection<RequestProductOutputDto>? AllProductsOk(
         CanteenRequest canteenRequest, Menu menu)
     {
 
         canteenRequest.RequestProducts ??= new List<RequestProduct>();
-        var productsOutput  = new List<RequestInputDto>();
-        foreach (var product in canteenRequest.RequestProducts)
+        var productsOutput  = new List<RequestProductOutputDto>();
+        foreach (var requestProduct in canteenRequest.RequestProducts)
         {
-            var existingProduct = canteenRequest.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
+            var existingProduct = canteenRequest.RequestProducts.FirstOrDefault(p => p.ProductId == requestProduct.ProductId);
             
-            var aviableProduct = menu.MenuProducts!.SingleOrDefault(x=>x.CanteenProductId == product.ProductId);
+            var aviableProduct = menu.MenuProducts!.SingleOrDefault(x=>x.CanteenProductId == requestProduct.ProductId);
             if (aviableProduct is null )
             {
-                productsOutput.Add(new RequestInputDto()
-                {
-                    RequestId = canteenRequest.Id,
-                    Product = new ProductDayDto
-                    {
-                        Product = product.Product,
-                        Quantity = product.Quantity,
-                        ProductId = product.ProductId
-                    }
-                });
+                productsOutput.Add(requestProduct.ToRequestProductOutputDto());
             }
-            else if (aviableProduct.Quantity < product.Quantity)
+            else if (aviableProduct.Quantity < requestProduct.Quantity)
             {
-                productsOutput.Add(new RequestInputDto()
-                {
-                    RequestId = canteenRequest.Id,
-                    Product = new ProductDayDto
-                    {
-                        Product = product.Product,
-                        Quantity = product.Quantity - aviableProduct.Quantity,
-                        ProductId = product.ProductId
-                    }
-                });
-                
+                var requestSuperconductor = requestProduct.ToRequestProductOutputDto();
+                requestSuperconductor.Quantity = requestProduct.Quantity - aviableProduct.Quantity;
+                productsOutput.Add(requestProduct.ToRequestProductOutputDto());
             }
         }
 
@@ -368,7 +351,7 @@ public class RequestServices(
         {
             return productsOutput;
         }
-        return canteenRequest;
+        return null;
     }
     
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> DiscountFromInventaryAsync(CanteenRequest canteenRequest, int establishmentId)
