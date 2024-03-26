@@ -1,9 +1,10 @@
 using Canteen;
+using Canteen.DataAccess;
 using Canteen.Middlewares;
 using Microsoft.AspNetCore.HttpOverrides;
 
 //const string corsPolicyName = "MyCustomPolicy";
-
+const string corsPolicyName = "MyCustomPolicy";
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -18,6 +19,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.SetSettings(builder.Configuration);
 builder.Services.SetDbContext(builder.Configuration);
 builder.Services.SetOurServices();
+builder.Services.SetCors(builder.Configuration, corsPolicyName);
 builder.Services.AddTransient<IpAddressMiddleware>();
 
 builder.Services.AddControllers();

@@ -12,24 +12,7 @@ namespace Canteen;
 public static class ServiceCollectionExtensions
 {
     
-    public static IServiceCollection SetDbContext(
-        this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        
-        var serverVersion = new MySqlServerVersion(new Version(8, 0, 33));
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        
-        services.AddDataProtection().PersistKeysToDbContext<EntitiesContext>();
-        services.AddDbContext<DbContext, EntitiesContext>(options => options
-            .UseMySql(connectionString, serverVersion)
-            .EnableSensitiveDataLogging(false)
-            .EnableDetailedErrors()
-        );
-    
-        return services;
-    }
-    
+   
     
     public static IServiceCollection SetCors(
         this IServiceCollection services,
@@ -73,21 +56,6 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
          */
 
-        return services;
-    }
-    public static IServiceCollection SetOurServices(this IServiceCollection services)
-    {
-        
-        services.AddSingleton<IEmailSender, AmazonSesEmailSender>();
-        services.AddScoped<IpAddressServices, IpAddressServices>();
-        
-        services.AddScoped<CanteenOrderServices, CanteenOrderServices>();
-        services.AddScoped<CartServices, CartServices>();
-        services.AddScoped<EstablishmentService, EstablishmentService>();
-        services.AddScoped<MenuServices, MenuServices>();
-        services.AddScoped<ProductServices, ProductServices>();
-        services.AddScoped<RequestServices, RequestServices>();
-        
         return services;
     }
     
