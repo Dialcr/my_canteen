@@ -35,7 +35,7 @@ public static class RequestProductExtention
         {
            ProductId = requestProduct.ProductId,
            RequestId = requestProduct.RequestId,
-           ProuctName = requestProduct.Product.Name,
+           ProuctName = requestProduct.Product!.Name,
            ProductDescription = requestProduct.Product.Description,
            Category = requestProduct.Product.Category,
            ProductPrice = requestProduct.Product.Price,

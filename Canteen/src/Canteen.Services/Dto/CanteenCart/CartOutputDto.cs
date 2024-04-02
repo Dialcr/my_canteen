@@ -1,4 +1,7 @@
-﻿namespace Canteen.Services.Dto;
+﻿using Canteen.Services.Dto.CanteenRequest;
+using Canteen.Services.Dto.Establishment;
+
+namespace Canteen.Services.Dto;
 
 public class CartOutputDto
 {

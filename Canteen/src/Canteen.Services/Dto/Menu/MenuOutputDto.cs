@@ -11,7 +11,7 @@ public class MenuOutputDto
 
 public static class MenuExtention
 {
-    public static MenuOutputDto ToEstablishmentOutputDto(this Menu menu)
+    public static MenuOutputDto ToMenuOutputDto(this Menu menu)
     {
         
         return new MenuOutputDto()

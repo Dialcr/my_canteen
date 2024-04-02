@@ -2,6 +2,7 @@
 using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Dto;
+using Canteen.Services.Dto.Mapper;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Internal;

@@ -2,7 +2,7 @@
 
 public class CreateRequestInputDto
 {
-    public int RequestId { get; set; }
+    public int Id { get; set; }
     public DateTime DeliveryDate{ get; set; }
     public string DeliveryLocation{ get; set; }="";
     public ICollection<RequestProductDto> RequestProducts{ get; set; }

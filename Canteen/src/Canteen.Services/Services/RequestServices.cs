@@ -1,6 +1,8 @@
 ﻿using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Dto;
+using Canteen.Services.Dto.CanteenRequest;
+using Canteen.Services.Dto.Mapper;
 using Microsoft.Extensions.Logging;
 
 namespace Canteen.Services.Services;
@@ -134,7 +136,7 @@ public class RequestServices(
         cart!.Requests!.Add(request);
         await context.SaveChangesAsync();
         
-        return CartingCartExtention.ToCanteenCartDto(cart);
+        return cart.ToCanteenCartDto();
     }
     private OneOf<ResponseErrorDto, CanteenRequest> GetAviableProduct(Menu menuDay, CanteenRequest canteenRequestPlanning)
     {

@@ -27,7 +27,7 @@ public class ProductOutputDto
 
 public static class ProductExtention
 {
-    public static ProductOutputDto ToProductOutputDto(this Product product)
+    public static ProductOutputDto ToProductOutputDtos(this Product product)
     {
         
         return new ProductOutputDto()

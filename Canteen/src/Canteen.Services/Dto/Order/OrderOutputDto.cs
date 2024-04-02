@@ -1,13 +1,12 @@
 ﻿using Canteen.DataAccess.Enums;
+using Canteen.Services.Dto.CanteenRequest;
 
-namespace Canteen.Services.Dto;
+namespace Canteen.Services.Dto.Order;
 
 public class OrderOutputDto
 {
     public int Id { get; set; }
     public int EstablishmentId { get; set; }
-
-    public Establishment? Establishment { get; set; }
 
     public OrderStatus Status { get; set; }
 
@@ -26,7 +25,7 @@ public class OrderOutputDto
 
 public static class OrderExtention
 {
-    public static OrderOutputDto ToOrderOutputDto(this Order order)
+    public static OrderOutputDto ToOrderOutputDto(this DataAccess.Entities.Order order)
     {
         
         return new OrderOutputDto()

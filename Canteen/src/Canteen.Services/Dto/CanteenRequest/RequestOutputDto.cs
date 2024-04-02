@@ -1,7 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Canteen.DataAccess.Enums;
+﻿using Canteen.DataAccess.Enums;
 
-namespace Canteen.Services.Dto;
+namespace Canteen.Services.Dto.CanteenRequest;
 
 public class RequestOutputDto
 {
@@ -34,7 +33,7 @@ public class RequestOutputDto
 
 public static class RequestExtention
 {
-    public static RequestOutputDto ToCanteenRequestWithProductsDto(this CanteenRequest request)
+    public static RequestOutputDto ToCanteenRequestWithProductsDto(this DataAccess.Entities.CanteenRequest request)
     {
         
         return new RequestOutputDto()
@@ -61,7 +60,7 @@ public static class RequestExtention
             })
         };
 
-    }public static RequestOutputDto ToCanteenRequestOutputDto(this CanteenRequest request)
+    }public static RequestOutputDto ToCanteenRequestOutputDto(this DataAccess.Entities.CanteenRequest request)
     {
         
         return new RequestOutputDto()

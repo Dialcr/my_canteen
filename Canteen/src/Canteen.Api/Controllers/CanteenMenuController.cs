@@ -28,6 +28,6 @@ public class CanteenMenuController( MenuServices menuServices,
 
         logger.LogInformation($"Menu from establishment {idEstablishment} in date {date}found correctly");
 
-        return Ok(response.ToEstablishmentOutputDto());
+        return Ok(response.ToMenuOutputDto());
     }
 }
