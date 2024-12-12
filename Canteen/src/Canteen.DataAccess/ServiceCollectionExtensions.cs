@@ -11,17 +11,19 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        
-        var serverVersion = new MySqlServerVersion(new Version(8, 0, 33));
+
+        // var serverVersion = new MySqlServerVersion(new Version(8, 0, 33));
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        
+
         services.AddDataProtection().PersistKeysToDbContext<EntitiesContext>();
         services.AddDbContext<DbContext, EntitiesContext>(options => options
-            .UseMySql(connectionString, serverVersion)
-            .EnableSensitiveDataLogging(false)
-            .EnableDetailedErrors()
-        );
-    
+            .UseNpgsql(connectionString).EnableDetailedErrors().EnableSensitiveDataLogging());
+        // services.AddDbContext<DbContext, EntitiesContext>(options => options
+        //     .UseMySql(connectionString, serverVersion)
+        //     .EnableSensitiveDataLogging(false)
+        //     .EnableDetailedErrors()
+        // );
+
         return services;
     }
 

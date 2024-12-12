@@ -2,20 +2,16 @@ using Canteen;
 using Canteen.DataAccess;
 using Canteen.Middlewares;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 
-//const string corsPolicyName = "MyCustomPolicy";
 const string corsPolicyName = "MyCustomPolicy";
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//servicecollections
-//builder.Services.SetCors(builder.Configuration, corsPolicyName);
 builder.Services.SetSettings(builder.Configuration);
 builder.Services.SetDbContext(builder.Configuration);
 builder.Services.SetOurServices();
@@ -30,7 +26,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 var app = builder.Build();
 app.UseMiddleware<GlobalErrorHandlerMiddleware>();
-
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<EntitiesContext>();
+    dbContext.Database.Migrate();
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -42,4 +42,3 @@ app.MapControllers();
 app.UseHttpsRedirection();
 
 app.Run();
-

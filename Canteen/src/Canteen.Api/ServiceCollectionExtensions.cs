@@ -11,9 +11,9 @@ namespace Canteen;
 
 public static class ServiceCollectionExtensions
 {
-    
-   
-    
+
+
+
     public static IServiceCollection SetCors(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -28,13 +28,19 @@ public static class ServiceCollectionExtensions
 
         services.AddCors(options =>
         {
-            options.AddPolicy(name: policyName, builder =>
+            // options.AddPolicy(name: policyName, builder =>
+            // {
+            //     builder
+            //         .WithOrigins(origins)
+            //         .AllowAnyMethod()
+            //         .AllowAnyHeader()
+            //         .AllowCredentials();
+            // });
+            options.AddDefaultPolicy(policy =>
             {
-                builder
-                    .WithOrigins(origins)
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials();
+                policy.AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyOrigin();
             });
         });
 
@@ -48,7 +54,7 @@ public static class ServiceCollectionExtensions
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.Configure<OrderEmailSettings>(configuration.GetSection("OrderEmail"));
         //services.Configure<StoreSettings>(configuration.GetSection("Store"));
-        
+
         /*
          services.AddOptions<JwtSettings>()
             .Bind(configuration.GetSection("Authentication:Jwt"))
@@ -58,8 +64,8 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
-    
 
-    
+
+
+
 }

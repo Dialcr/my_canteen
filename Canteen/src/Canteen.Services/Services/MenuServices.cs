@@ -5,27 +5,41 @@ namespace Canteen.Services.Services;
 
 public class MenuServices(EntitiesContext context) : CustomServiceBase(context)
 {
-    public OneOf<ResponseErrorDto, Menu>  GetMenuByEstablishmentAndDate(
-        int idEstablishment,
-        DateTimeOffset date)
+    public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date)
     {
-        var result = context.Menus.Include(x=>x.MenuProducts)
-            .ThenInclude(x=>x.Product)
-            .ThenInclude(y=>y!.DietaryRestrictions)
-            .Include(x=>x.MenuProducts)
-            .ThenInclude(x=>x.Product)
-            .ThenInclude(y=>y!.ImagesUrl)
-            .SingleOrDefault(x =>
-                x.EstablishmentId == idEstablishment &&
-                x.Date.Date == date.Date);
+        var menu = FindMenuByEstablishmentAndDate(idEstablishment, date);
 
-        if (result is null)
+        if (IsMenuNotFound(menu))
         {
-            return Error("Menu not found",
-                $"The Menu of establishment with id {idEstablishment} in the date {date}  has not found",
-                400);
+            return CreateMenuNotFoundError(idEstablishment, date);
         }
 
-        return result;
+        return menu;
     }
+    private Menu? FindMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date)
+    {
+        return context.Menus
+            .Include(menu => menu.MenuProducts)
+            .ThenInclude(menuProduct => menuProduct.Product)
+            .ThenInclude(product => product!.DietaryRestrictions)
+            .Include(menu => menu.MenuProducts)
+            .ThenInclude(menuProduct => menuProduct.Product)
+            .ThenInclude(product => product!.ImagesUrl)
+            .SingleOrDefault(menu =>
+                menu.EstablishmentId == idEstablishment &&
+                menu.Date.Date == date.Date);
+    }
+
+    private bool IsMenuNotFound(Menu? menu)
+    {
+        return menu is null;
+    }
+
+    private OneOf<ResponseErrorDto, Menu> CreateMenuNotFoundError(int idEstablishment, DateTimeOffset date)
+    {
+        return Error("Menu not found",
+            $"The Menu of establishment with id {idEstablishment} in the date {date} has not found",
+            400);
+    }
+
 }

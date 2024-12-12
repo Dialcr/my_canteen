@@ -30,40 +30,71 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Order>().
-            HasMany(x => x.Requests)
-            .WithOne(x=>x.Order);
-        
+        ConfigureOrderEntity(modelBuilder);
+        ConfigureEstablishmentEntity(modelBuilder);
+        ConfigureMenuEntity(modelBuilder);
+        ConfigureMenuProductEntity(modelBuilder);
+        ConfigureProductEntity(modelBuilder);
+        ConfigureDiscountEntity(modelBuilder);
+        ConfigureCanteenCartEntity(modelBuilder);
+    }
+
+    private void ConfigureOrderEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<Order>()
-            .HasOne(x=>x.Establishment)
-            .WithMany(x=>x.Orders);
-        
+            .HasMany(x => x.Requests)
+            .WithOne(x => x.Order);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.Establishment)
+            .WithMany(x => x.Orders);
+    }
+
+    private void ConfigureEstablishmentEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<Establishment>()
             .HasMany(x => x.Products)
             .WithOne(x => x.Establishment);
+    }
 
+    private void ConfigureMenuEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<Menu>()
             .HasMany(x => x.MenuProducts)
             .WithOne(x => x.Menu);
-        
+    
         modelBuilder.Entity<Menu>()
-            .HasOne(x =>x.Establishment)
-            .WithMany(x=>x.Menus);
-        
+            .HasOne(x => x.Establishment)
+            .WithMany(x => x.Menus);
+    }
+
+    private void ConfigureMenuProductEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<MenuProduct>()
             .HasOne(x => x.Product);
+    }
+
+    private void ConfigureProductEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<Product>()
-            .HasMany(x=>x.DietaryRestrictions)
-            .WithMany(x=>x.Products);
+            .HasMany(x => x.DietaryRestrictions)
+            .WithMany(x => x.Products);
 
         modelBuilder.Entity<Product>()
             .HasMany(x => x.ImagesUrl);
-        
-        modelBuilder.Entity<Discount>()
-            .HasOne(x=>x.Establishment)
-            .WithMany(x=>x.Discounts);
-        
-        modelBuilder.Entity<CanteenCart>()
-            .HasMany(x=>x.Requests);
     }
+
+    private void ConfigureDiscountEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Discount>()
+            .HasOne(x => x.Establishment)
+            .WithMany(x => x.Discounts);
+    }
+
+    private void ConfigureCanteenCartEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CanteenCart>()
+            .HasMany(x => x.Requests);
+    }
+
 }

@@ -14,6 +14,17 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
 {
   
 
+    private ActionResult<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>> HandleError(ResponseErrorDto error)
+    {
+        logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+        return BadRequest(error);
+    }
+
+    private void LogRequestFound(int userId)
+    {
+        logger.LogInformation($"All Request of user {userId} found correctly");
+    }
+
     [HttpGet]
     [ProducesResponseType(typeof(List<RequestOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
@@ -24,14 +35,14 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
 
         if (result.TryPickT0(out var error, out var response))
         {
-            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
-            return BadRequest(error);
+            return HandleError(error);
         }
 
-        logger.LogInformation($"All Request of user {userId} found correctly");
+        LogRequestFound(userId);
         var requestList = response.Select(x => x.ToCanteenRequestWithProductsDto());
         return Ok(requestList);
     }
+
 
     [HttpGet]
     [ProducesResponseType(typeof(ICollection<CanteenRequest>), StatusCodes.Status200OK)]

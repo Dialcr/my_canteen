@@ -14,32 +14,35 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
         var order = await context.Orders.FindAsync(orderId);
         if (order is null)
         {
-            return Error("Order not found", 
-                $"The order with id {orderId} has not found",
-                400);
+            const string errorMessage = "Order not found";
+            const string errorDetail = $"The order with has not found";
+            const int errorStatus = 400;
+        
+            return Error(errorMessage, errorDetail, errorStatus);
         }
 
-        var totalDiscount = context.Discounts.Where(x => x.Establishment!.Id == order.EstablishmentId
-                                                         && x.DiscountType.Equals(DiscountType.TotalAmount)
-                                                         && order.PrductsTotalAmount <= x.TotalNecesity)
-            .OrderByDescending(x => x.TotalNecesity)
-            .FirstOrDefault();
+        var totalDiscount = GetApplicableDiscount(order.EstablishmentId, order.PrductsTotalAmount, DiscountType.TotalAmount);
+        var deliveryDiscount = GetApplicableDiscount(order.EstablishmentId, order.DeliveryTotalAmount, DiscountType.DeliveryAmount);
 
-        var delivaryDiscount = context.Discounts.Where(x => x.Establishment!.Id == order.EstablishmentId
-                                                            && x.DiscountType.Equals(DiscountType.DeliveryAmount)
-                                                            && order.DeliveryTotalAmount <= x.TotalNecesity)
-            .OrderByDescending(x => x.TotalNecesity)
-            .FirstOrDefault();
-
-
-        order.ProductTotalDiscount = (totalDiscount is not null) ? totalDiscount.DiscountDecimal : 1;
-        order.DeliveryTotalDiscount = (delivaryDiscount is not null) ? delivaryDiscount.DiscountDecimal : 1;
-        
+        const decimal defaultDiscountValue = 1m;
+        order.ProductTotalDiscount = totalDiscount?.DiscountDecimal ?? defaultDiscountValue;
+        order.DeliveryTotalDiscount = deliveryDiscount?.DiscountDecimal ?? defaultDiscountValue;
 
         await context.SaveChangesAsync();
 
         return order;
     }
+
+    private Discount? GetApplicableDiscount(int establishmentId, decimal amount, DiscountType discountType)
+    {
+        return context.Discounts
+            .Where(x => x.Establishment!.Id == establishmentId
+                        && x.DiscountType.Equals(discountType)
+                        && amount <= x.TotalNecesity)
+            .OrderByDescending(x => x.TotalNecesity)
+            .FirstOrDefault();
+    }
+
 
     public async Task<OneOf<ResponseErrorDto, Order>> UpdateTotalsAsync(int orderId)
     {
