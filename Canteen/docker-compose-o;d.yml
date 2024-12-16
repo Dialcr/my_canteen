@@ -1,0 +1,25 @@
+version: "3.4"
+
+services:
+  db:
+    container_name: canteen-container
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=canteen2024
+    volumes:
+      - ./salva-bd:/var/lib/postgresql/
+
+  Canteen.Api:
+    container_name: Canteen-webapid
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8090:80"
+
+    depends_on:
+      - db
