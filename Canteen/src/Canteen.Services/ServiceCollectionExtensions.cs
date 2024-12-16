@@ -1,4 +1,5 @@
-﻿using Canteen.Services.EmailServices;
+﻿using Canteen.Services.Abstractions;
+using Canteen.Services.EmailServices;
 using Canteen.Services.IpAdress;
 using Canteen.Services.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,19 +10,18 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection SetOurServices(this IServiceCollection services)
     {
-        
+
         services.AddSingleton<IEmailSender, AmazonSesEmailSender>();
         services.AddScoped<IpAddressServices, IpAddressServices>();
-        
-        services.AddScoped<CanteenOrderServices, CanteenOrderServices>();
-        services.AddScoped<CartServices, CartServices>();
-        services.AddScoped<EstablishmentService, EstablishmentService>();
-        services.AddScoped<MenuServices, MenuServices>();
-        services.AddScoped<ProductServices, ProductServices>();
-        services.AddScoped<RequestServices, RequestServices>();
-        
+
+        services.AddScoped<ICanteenOrderServices, CanteenOrderServices>();
+        services.AddScoped<ICartServices, CartServices>();
+        services.AddScoped<IEstablishmentService, EstablishmentService>();
+        services.AddScoped<IMenuServices, MenuServices>();
+        services.AddScoped<IProductServices, ProductServices>();
+        services.AddScoped<IRequestServices, RequestServices>();
         return services;
     }
 
-    
+
 }

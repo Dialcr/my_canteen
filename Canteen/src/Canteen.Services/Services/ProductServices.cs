@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.Mapper;
 using Google.Protobuf.WellKnownTypes;
@@ -9,12 +10,12 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Canteen.Services.Services;
 
-public class ProductServices(EntitiesContext context) : CustomServiceBase(context)
+public class ProductServices(EntitiesContext context) : CustomServiceBase(context), IProductServices
 {
     public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(ProductCategory categoryProduct)
     {
-        var result = await context.Products.Include(x=>x.DietaryRestrictions)
-            .Include(x=>x.ImagesUrl)
+        var result = await context.Products.Include(x => x.DietaryRestrictions)
+            .Include(x => x.ImagesUrl)
             .Where(x => x.Category == categoryProduct).ToListAsync();
 
         if (result is null)
@@ -32,7 +33,7 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
         var result = dayMenu.MenuProducts!
             .Where(x => x.Quantity > 0)
             .ToList();
-            
+
 
         if (!result.Any())
         {
@@ -46,8 +47,8 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
 
     public OneOf<ResponseErrorDto, Product> GetCantneeProductById(int productId)
     {
-        var result = context.Products.Include(x=>x.DietaryRestrictions)
-            .Include(x=>x.ImagesUrl)
+        var result = context.Products.Include(x => x.DietaryRestrictions)
+            .Include(x => x.ImagesUrl)
             .SingleOrDefault(x => x.Id == productId);
 
         if (result is null)
@@ -58,12 +59,12 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
         }
         return result;
     }
-    
 
-    public OneOf<ResponseErrorDto,ICollection<ProductOutputDto>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
+
+    public OneOf<ResponseErrorDto, ICollection<ProductOutputDto>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
     {
-        var result =  context.Products.Include(x=>x.DietaryRestrictions)
-            .Include(x=>x.ImagesUrl)
+        var result = context.Products.Include(x => x.DietaryRestrictions)
+            .Include(x => x.ImagesUrl)
             .Where(x => x.DietaryRestrictions!.Any(y => y.Description == dietaryRestriction));
         if (!result.Any())
         {

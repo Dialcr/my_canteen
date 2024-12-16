@@ -1,12 +1,13 @@
 ﻿using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.CanteenRequest;
 using Canteen.Services.Dto.Order;
 
 namespace Canteen.Services.Services;
 
-public class CanteenOrderServices(EntitiesContext context, MenuServices menuServices) : CustomServiceBase(context)
+public class CanteenOrderServices(EntitiesContext context, MenuServices menuServices) : CustomServiceBase(context), ICanteenOrderServices
 {
     public async Task<OneOf<ResponseErrorDto, Order>> ApplyDiscountToOrderAsync(
         int orderId)
@@ -17,7 +18,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
             const string errorMessage = "Order not found";
             const string errorDetail = $"The order with has not found";
             const int errorStatus = 400;
-        
+
             return Error(errorMessage, errorDetail, errorStatus);
         }
 
@@ -77,7 +78,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
         {
             order.Status = OrderStatus.Cancelled;
         }
-        else if (order.Requests!.All(r => r.Status == RequestStatus.Delivered 
+        else if (order.Requests!.All(r => r.Status == RequestStatus.Delivered
                                           || r.Status == RequestStatus.Cancelled))
         {
             order.Status = OrderStatus.Close;
@@ -98,23 +99,23 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
             return Error("Order not found",
                 $"The order with id {orderId} has not found",
                 400);
-            
+
         }
-        
+
         foreach (var orderRequest in order.Requests!)
         {
-            
+
             orderRequest.Status = RequestStatus.Cancelled;
 
             Menu originDayMenu = context.Menus
-                .Include(x=>x.MenuProducts)
+                .Include(x => x.MenuProducts)
                 .SingleOrDefault(x => x.Date.Date == orderRequest.DeliveryDate.Date! && x.EstablishmentId == orderRequest.Order!.EstablishmentId)!;
             foreach (var dayProduct in originDayMenu.MenuProducts!)
             {
-            
+
                 var requestproduct = orderRequest.RequestProducts!.FirstOrDefault(x =>
                     x.ProductId == dayProduct.CanteenProductId);
-                if ( requestproduct is not null)
+                if (requestproduct is not null)
                 {
                     dayProduct.Quantity += requestproduct.Quantity;
                 }
@@ -127,12 +128,12 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
         await UpdateTotalsAsync(orderId);
         await ApplyDiscountToOrderAsync(orderId);
         await CloseOrderIfAllRequestsClosedAsync(orderId);
-    
+
         order.Status = OrderStatus.Cancelled;
         await context.SaveChangesAsync();
         return order;
     }
-    
+
     public async Task<Order> CreateOrderAsync(CanteenCart cart)
     {
         var newOrder = new Order
@@ -141,8 +142,8 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
             Status = OrderStatus.Created,
             Requests = cart.Requests,
             EstablishmentId = cart.EstablishmentId,
-            PrductsTotalAmount =  cart.Requests.Sum(x=>x.TotalAmount),
-            DeliveryTotalAmount = cart.Requests.Sum(x=>x.DeliveryAmount),
+            PrductsTotalAmount = cart.Requests.Sum(x => x.TotalAmount),
+            DeliveryTotalAmount = cart.Requests.Sum(x => x.DeliveryAmount),
             UserId = cart.UserId
 
         };
@@ -152,12 +153,12 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
 
     }
 
-    
+
 
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> EditRequestIntoOrderAsync(
         EditRequestDto requestDto)
     {
-       
+
         var request = await context.Requests
             .Include(r => r.RequestProducts)!.ThenInclude(requestProduct => requestProduct.Product)
             .FirstOrDefaultAsync(r => r.Id == requestDto.RequestId);
@@ -169,7 +170,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
                 400);
         }
 
-        
+
         if (!request.Status.Equals(RequestStatus.Planned))
         {
             return Error("Invalid request status",
@@ -183,7 +184,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
         {
             var existingProduct = request.RequestProducts.FirstOrDefault(p => p.ProductId == product.ProductId);
             var aviableProduct = context.MenuProducts.Include(x => x.Product)
-                .FirstOrDefault(x=>x.CanteenProductId == product.ProductId && x.Menu!.Date.Date == request.DeliveryDate.Date);
+                .FirstOrDefault(x => x.CanteenProductId == product.ProductId && x.Menu!.Date.Date == request.DeliveryDate.Date);
             if (aviableProduct is null)
             {
                 return Error("Product not found",
@@ -192,18 +193,18 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
             }
             if (existingProduct is not null)
             {
-                if (product.Quantity < existingProduct.Quantity && product.Quantity!=0)
+                if (product.Quantity < existingProduct.Quantity && product.Quantity != 0)
                 {
                     existingProduct.Quantity = product.Quantity;
                     aviableProduct.Quantity += existingProduct.Quantity - product.Quantity;
                 }
-                else if (product.Quantity > existingProduct.Quantity && product.Quantity- existingProduct.Quantity<=aviableProduct.Quantity 
-                                                                     && product.Quantity!=0)
+                else if (product.Quantity > existingProduct.Quantity && product.Quantity - existingProduct.Quantity <= aviableProduct.Quantity
+                                                                     && product.Quantity != 0)
                 {
                     existingProduct.Quantity = product.Quantity;
-                    aviableProduct.Quantity -= product.Quantity-existingProduct.Quantity ;
+                    aviableProduct.Quantity -= product.Quantity - existingProduct.Quantity;
                 }
-                else if (existingProduct.Quantity !=product.Quantity)
+                else if (existingProduct.Quantity != product.Quantity)
                 {
                     return Error("Insufficient stock",
                         $"The product with id {product.ProductId} does not have sufficient stock",
@@ -216,7 +217,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
                     Quantity = product.Quantity,
                     UnitPrice = aviableProduct.Product!.Price
                 });
-                
+
             }
             else
             {
@@ -243,7 +244,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
         request.DeliveryTimeId = requestDto.DeliveryTimeId;
         await UpdateTotalsAsync(request.OrderId!.Value);
         await ApplyDiscountToOrderAsync(request.OrderId!.Value);
-        request.TotalAmount = request.RequestProducts.Sum(x=>x.UnitPrice * x.Quantity);
+        request.TotalAmount = request.RequestProducts.Sum(x => x.UnitPrice * x.Quantity);
         await context.SaveChangesAsync();
 
         return request;
@@ -290,11 +291,11 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
             RequestProducts = new List<RequestProduct>(),
             DeliveryTimeId = request.DeliveryTimeId,
             DeliveryAmount = request.DeliveryAmount,
-            
+
         };
         foreach (var requestProduct in request.RequestProducts!)
         {
-            var aviableProduct = dayMenu.MenuProducts!.FirstOrDefault(x => x.Product!.Id == requestProduct.ProductId && x.Quantity >= requestProduct.Quantity );
+            var aviableProduct = dayMenu.MenuProducts!.FirstOrDefault(x => x.Product!.Id == requestProduct.ProductId && x.Quantity >= requestProduct.Quantity);
             if (aviableProduct is null)
             {
                 return Error("Insufficient stock",
@@ -308,8 +309,8 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
                     ProductId = requestProduct.ProductId,
                     RequestId = request.Id,
                     Quantity = requestProduct.Quantity,
-                    
-                    
+
+
                 });
                 aviableProduct.Quantity -= requestProduct.Quantity;
             }
@@ -340,22 +341,22 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
             request.Status = RequestStatus.Cancelled;
 
             var originDayMenu = context.Menus
-                .Include(x=>x.MenuProducts)
+                .Include(x => x.MenuProducts)
                 .SingleOrDefault(x => x.Date.Date == request.DeliveryDate.Date! && x.EstablishmentId == request.Order!.EstablishmentId)!;
             foreach (var dayProduct in originDayMenu.MenuProducts!)
             {
                 var requestproduct = request.RequestProducts!.FirstOrDefault(x =>
                     x.ProductId == dayProduct.CanteenProductId);
-                if ( requestproduct is not null)
+                if (requestproduct is not null)
                 {
                     dayProduct.Quantity += requestproduct.Quantity;
                 }
             };
-            
+
             await UpdateTotalsAsync(request.OrderId!.Value);
             await ApplyDiscountToOrderAsync(request.OrderId!.Value);
             await CloseOrderIfAllRequestsClosedAsync(request.OrderId.Value);
-            
+
             await context.SaveChangesAsync();
             return request.ToCanteenRequestOutputDto();
         }
@@ -369,12 +370,12 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
     {
         var order = await context.Orders
             .Include(x => x.Requests)
-            .ThenInclude(x=>x.RequestProducts)
-            .ThenInclude(x=>x.Product)
+            .ThenInclude(x => x.RequestProducts)
+            .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.UserId == userId);
         if (order is null)
         {
-            return Error("Cart not found", 
+            return Error("Cart not found",
                 $"The cart of user with id {userId} has not found",
                 400);
         }

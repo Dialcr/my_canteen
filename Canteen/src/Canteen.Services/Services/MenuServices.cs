@@ -1,9 +1,10 @@
 ﻿using Canteen.DataAccess;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 
 namespace Canteen.Services.Services;
 
-public class MenuServices(EntitiesContext context) : CustomServiceBase(context)
+public class MenuServices(EntitiesContext context) : CustomServiceBase(context), IMenuServices
 {
     public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date)
     {

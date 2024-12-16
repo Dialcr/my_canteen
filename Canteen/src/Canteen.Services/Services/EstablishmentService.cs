@@ -1,15 +1,16 @@
 using Canteen.DataAccess;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.Establishment;
 using Canteen.Services.Dto.Establishment.Mapper;
 
 namespace Canteen.Services.Services;
 
-public class EstablishmentService(EntitiesContext context) : CustomServiceBase(context)
+public class EstablishmentService(EntitiesContext context) : CustomServiceBase(context), IEstablishmentService
 {
     public IEnumerable<EstablishmentOutputDto> GetAllEstablishments()
     {
-        var allEstablishment = context.Establishments.Select(x=>x.ToEstablishmentOutputDto());
+        var allEstablishment = context.Establishments.Select(x => x.ToEstablishmentOutputDto());
         return allEstablishment;
     }
 

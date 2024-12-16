@@ -1,5 +1,6 @@
 ﻿using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.CanteenRequest;
 using Canteen.Services.Dto.Mapper;
@@ -11,7 +12,7 @@ public class RequestServices(
     EntitiesContext context,
     ILogger<RequestServices> logger,
     ProductServices services,
-    MenuServices menuServices) : CustomServiceBase(context)
+    MenuServices menuServices) : CustomServiceBase(context), IRequestServices
 {
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> AddProductsToRequestAsync(
         int requestId,
@@ -88,9 +89,9 @@ public class RequestServices(
         CreateRequestInputDto createRequestInputDto,
         int userId)
     {
-        var cart = await context.Carts.Include(x=>x.Requests)
-            .FirstOrDefaultAsync(x=> x.EstablishmentId==createRequestInputDto.EstablishmentId
-                                     && x.UserId==userId);
+        var cart = await context.Carts.Include(x => x.Requests)
+            .FirstOrDefaultAsync(x => x.EstablishmentId == createRequestInputDto.EstablishmentId
+                                     && x.UserId == userId);
         if (cart is null)
         {
             cart = new CanteenCart()
@@ -103,18 +104,18 @@ public class RequestServices(
             context.Carts.Add(cart);
         }
 
-        var estableshimentProducts =context.Products.Where(x => x.EstablishmentId == createRequestInputDto.EstablishmentId);
-        
+        var estableshimentProducts = context.Products.Where(x => x.EstablishmentId == createRequestInputDto.EstablishmentId);
+
 
         var requestProducts = createRequestInputDto.RequestProducts
             .Select(x => new RequestProduct()
             {
                 ProductId = x.ProductId,
                 Quantity = x.Quantity,
-                UnitPrice = estableshimentProducts.FirstOrDefault(p=>p.Id == x.ProductId)!.Price
+                UnitPrice = estableshimentProducts.FirstOrDefault(p => p.Id == x.ProductId)!.Price
 
             }).ToList();
-        if (requestProducts.Count()!=createRequestInputDto.RequestProducts.Count)
+        if (requestProducts.Count() != createRequestInputDto.RequestProducts.Count)
         {
             return Error("Invalid request",
                 "One or more products are not available",
@@ -126,16 +127,16 @@ public class RequestServices(
             CreatedAt = DateTime.Now,
             DeliveryDate = createRequestInputDto.DeliveryDate,
             DeliveryLocation = createRequestInputDto.DeliveryLocation,
-            TotalAmount = requestProducts.Sum(x=>x.UnitPrice * x.Quantity),
+            TotalAmount = requestProducts.Sum(x => x.UnitPrice * x.Quantity),
             DeliveryAmount = createRequestInputDto.DeliveryAmount,
             Status = RequestStatus.Planned,
             DeliveryTimeId = createRequestInputDto.DeliveryTimeId,
             RequestProducts = requestProducts
         };
-        
+
         cart!.Requests!.Add(request);
         await context.SaveChangesAsync();
-        
+
         return cart.ToCanteenCartDto();
     }
     private OneOf<ResponseErrorDto, CanteenRequest> GetAviableProduct(Menu menuDay, CanteenRequest canteenRequestPlanning)
@@ -146,14 +147,14 @@ public class RequestServices(
         };
         foreach (var requestProduct in canteenRequestPlanning.RequestProducts!)
         {
-            var aviableProduct = menuDay.MenuProducts!.FirstOrDefault(x => x.Product!.Id == requestProduct.ProductId && x.Quantity >= requestProduct.Quantity );
+            var aviableProduct = menuDay.MenuProducts!.FirstOrDefault(x => x.Product!.Id == requestProduct.ProductId && x.Quantity >= requestProduct.Quantity);
             if (aviableProduct is null)
             {
                 return Error("Insufficient stock",
                     $"The product with id {requestProduct.ProductId} does not have sufficient stock",
                     400);
             }
-            
+
             newCanteenRequest.RequestProducts.Add(new RequestProduct()
             {
                 ProductId = requestProduct.ProductId,
@@ -161,7 +162,7 @@ public class RequestServices(
                 Quantity = requestProduct.Quantity
             });
             aviableProduct.Quantity -= requestProduct.Quantity;
-            
+
         }
 
         return newCanteenRequest;
@@ -170,8 +171,8 @@ public class RequestServices(
     public async Task<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>> RequestsListAsync(int userId)
     {
         var requests = await context.Requests
-            .Include(x=>x.RequestProducts)
-            .ThenInclude(x=>x.Product)
+            .Include(x => x.RequestProducts)
+            .ThenInclude(x => x.Product)
             .Where(x =>
                 x.UserId == userId &&
                 !x.Status.Equals(RequestStatus.Cancelled))
@@ -208,8 +209,8 @@ public class RequestServices(
             400);
     }
 
-    
-    
+
+
     public async Task<OneOf<ResponseErrorDto, IEnumerable<ProductOutputDto>, RequestOutputDto>> MoveRequestIntoOrderAsync(
         int requestId,
         DateTime newDeliveryDate)
@@ -251,29 +252,29 @@ public class RequestServices(
                     .Any(y =>
                         y.Product.Id == x.Id ||
                         (y.Product.Id == x.Id && y.Quantity < x.Quantity)))
-            .Select(x=>x.Product)
+            .Select(x => x.Product)
             .ToList();
-        
+
         if (productsNotFounfd.Count > 0)
         {
-            return productsNotFounfd.Select(x=>x.ToProductOutputDto()).ToList();
+            return productsNotFounfd.Select(x => x.ToProductOutputDto()).ToList();
         }
 
         foreach (var dayProdcut in menuOriginDay.MenuProducts)
         {
             var requestproduct = request.RequestProducts!.FirstOrDefault(x =>
                 x.ProductId == dayProdcut.CanteenProductId);
-            if ( requestproduct is not null)
+            if (requestproduct is not null)
             {
                 dayProdcut.Quantity += requestproduct.Quantity;
             }
         };
         foreach (var dayProdcut in menuChangeDay.MenuProducts)
         {
-            
+
             var requestproduct = request.RequestProducts!.FirstOrDefault(x =>
                 x.ProductId == dayProdcut.CanteenProductId);
-            if ( requestproduct is not null)
+            if (requestproduct is not null)
             {
                 dayProdcut.Quantity -= requestproduct.Quantity;
             }
@@ -289,7 +290,7 @@ public class RequestServices(
         int requestId,
         DateTime newDeliveryDate)
     {
-        var request =  await context.Requests
+        var request = await context.Requests
             .SingleOrDefaultAsync(x =>
                 x.Id == requestId &&
                 x.Status.Equals(RequestStatus.Planned));
@@ -300,7 +301,7 @@ public class RequestServices(
                 $"Request with id {requestId} and status {RequestStatus.Planned} not found",
                 400);
         }
-        
+
         request.DeliveryDate = newDeliveryDate;
         request.UpdatedAt = DateTime.Now;
         await context.SaveChangesAsync();
@@ -318,26 +319,26 @@ public class RequestServices(
 
         if (request is not null)
         {
-            
+
             return request.ToCanteenRequestWithProductsDto();
         }
         return Error("Request not found",
             $"Request with id {requestId} not found",
             400);
     }
-    
+
     public ICollection<RequestProductOutputDto>? AllProductsOk(
         CanteenRequest canteenRequest, Menu menu)
     {
 
         canteenRequest.RequestProducts ??= new List<RequestProduct>();
-        var productsOutput  = new List<RequestProductOutputDto>();
+        var productsOutput = new List<RequestProductOutputDto>();
         foreach (var requestProduct in canteenRequest.RequestProducts)
         {
             var existingProduct = canteenRequest.RequestProducts.FirstOrDefault(p => p.ProductId == requestProduct.ProductId);
-            
-            var aviableProduct = menu.MenuProducts!.SingleOrDefault(x=>x.CanteenProductId == requestProduct.ProductId);
-            if (aviableProduct is null )
+
+            var aviableProduct = menu.MenuProducts!.SingleOrDefault(x => x.CanteenProductId == requestProduct.ProductId);
+            if (aviableProduct is null)
             {
                 productsOutput.Add(requestProduct.ToRequestProductOutputDto());
             }
@@ -355,11 +356,11 @@ public class RequestServices(
         }
         return null;
     }
-    
+
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> DiscountFromInventaryAsync(CanteenRequest canteenRequest, int establishmentId)
     {
         var menu = await context.Menus.Include(menu => menu.MenuProducts!)
-            .FirstOrDefaultAsync(x=>x.EstablishmentId == establishmentId 
+            .FirstOrDefaultAsync(x => x.EstablishmentId == establishmentId
                                     && x.Date.Date == canteenRequest.DeliveryDate.Date);
         foreach (var requestProduct in canteenRequest.RequestProducts!)
         {
@@ -370,12 +371,12 @@ public class RequestServices(
                     "Product not found",
                     400);
             }
-            var aviableProduct = menu!.MenuProducts!.SingleOrDefault(x=>x.CanteenProductId == requestProduct.ProductId);
-            if (existingProduct.Quantity>aviableProduct!.Quantity)
+            var aviableProduct = menu!.MenuProducts!.SingleOrDefault(x => x.CanteenProductId == requestProduct.ProductId);
+            if (existingProduct.Quantity > aviableProduct!.Quantity)
             {
                 aviableProduct.Quantity -= existingProduct.Quantity;
             }
-            
+
             await context.SaveChangesAsync();
         }
         return canteenRequest;
