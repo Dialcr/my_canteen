@@ -1,10 +1,11 @@
-﻿using Canteen.Services.Dto.Order;
+﻿using Canteen.Services.Abstractions;
+using Canteen.Services.Dto.Order;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
 
-public class OrderController(CanteenOrderServices orderServices,ILogger<OrderController> logger) : ControllerBase
+public class OrderController(ICanteenOrderServices orderServices, ILogger<OrderController> logger) : ControllerBase
 {
     [HttpGet]
     [Route("getOrders/{userId}")]
@@ -15,7 +16,7 @@ public class OrderController(CanteenOrderServices orderServices,ILogger<OrderCon
         var result = await orderServices.GetOrderByUserIdAsync(userId);
         if (result.TryPickT0(out var error, out var response))
         {
-            logger.LogError( $"Error status {error.Status} Detail:{error.Detail}");
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
             return NotFound(error);
         }
         logger.LogInformation("All orders of user {userId} found correctly", userId);

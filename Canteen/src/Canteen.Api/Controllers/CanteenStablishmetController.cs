@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Establishment;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,7 @@ namespace Canteen.Controllers;
 [ApiController]
 [Route("Canteen/[controller]")]
 public class CanteenStablishmentController(
-    EstablishmentService establishmentService,
+    IEstablishmentService establishmentService,
     ILogger<CanteenStablishmentController> logger) : ControllerBase
 {
 
@@ -16,7 +17,7 @@ public class CanteenStablishmentController(
     [ProducesResponseType(typeof(IEnumerable<EstablishmentOutputDto>), StatusCodes.Status200OK)]
     public IActionResult GetAllSEstablishments()
     {
-        var establishments =  establishmentService.GetAllEstablishments();
+        var establishments = establishmentService.GetAllEstablishments();
         return Ok(establishments);
     }
 

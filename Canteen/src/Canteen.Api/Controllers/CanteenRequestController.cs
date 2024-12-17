@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.CanteenRequest;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +9,11 @@ namespace Canteen.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class CanteenRequestController(ILogger<CanteenRequestController> logger,
-    RequestServices requestServices,
-    CanteenOrderServices orderServices, 
+    IRequestServices requestServices,
+    CanteenOrderServices orderServices,
     CartServices cartServices) : ControllerBase
 {
-  
+
 
     private ActionResult<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>> HandleError(ResponseErrorDto error)
     {
@@ -88,14 +89,14 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
 
         return Ok(response);
     }
-    
+
     [HttpPost]
     [Route("createRequest")]
     [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRequest([FromBody] CreateRequestInputDto createRequestDto, int userId)
     {
-        
+
         var result = await requestServices.CreateRequestAsync(createRequestDto, userId);
 
         if (result.TryPickT0(out var errorDto, out var cart))
@@ -126,7 +127,7 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
         }
         logger.LogInformation("Successfuly Edited");
         return Ok(request.ToCanteenRequestWithProductsDto());
-        
+
     }
 
     [HttpPost("{requestId}/PlanningRequestIntoOrder")]
@@ -136,8 +137,8 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
         int requestId,
         [FromBody] PlanningRequestDto planningRequestDto)
     {
-        
-        var result = await orderServices.PlanningRequestIntoOrderAsync(requestId, planningRequestDto.EstablishmentId, 
+
+        var result = await orderServices.PlanningRequestIntoOrderAsync(requestId, planningRequestDto.EstablishmentId,
             planningRequestDto.NewDateTime);
 
         if (result.TryPickT0(out var error, out var request))
@@ -153,8 +154,8 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
         int requestId,
         [FromBody] PlanningRequestDto planningRequestDto)
     {
-        
-        var result = await cartServices.PlanningRequestIntoCartAsync(requestId, 
+
+        var result = await cartServices.PlanningRequestIntoCartAsync(requestId,
             planningRequestDto.NewDateTime);
 
         if (result.TryPickT0(out var error, out var request))
@@ -211,7 +212,7 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> EditRequestIntoCart(EditRequestDto requestDto)
     {
-        var result = await cartServices.EditRequestIntoCartAsync( requestDto);
+        var result = await cartServices.EditRequestIntoCartAsync(requestDto);
 
         if (result.TryPickT0(out var error, out var response))
         {
@@ -223,5 +224,5 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
 
         return Ok(response);
     }
-    
+
 }

@@ -1,11 +1,12 @@
-﻿using Canteen.Services.Services;
+﻿using Canteen.Services.Abstractions;
+using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CanteenMenuController( MenuServices menuServices,
+public class CanteenMenuController(IMenuServices menuServices,
  ILogger<CanteenMenuController> logger) : ControllerBase
 {
 

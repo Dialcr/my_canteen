@@ -1,5 +1,6 @@
 ﻿using Canteen.DataAccess.Entities;
 using Canteen.DataAccess.Enums;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Mapper;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ namespace Canteen.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CanteenProductController(ProductServices productServices,
+public class CanteenProductController(IProductServices productServices,
     ILogger<CanteenProductController> logger) : ControllerBase
 {
 
@@ -16,7 +17,7 @@ public class CanteenProductController(ProductServices productServices,
     [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("GetCanteenProductById")]
-    public IActionResult GetCanteenProductById(int productId)   
+    public IActionResult GetCanteenProductById(int productId)
     {
         var result = productServices.GetCantneeProductById(productId);
 
@@ -60,7 +61,7 @@ public class CanteenProductController(ProductServices productServices,
     {
         var result = productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
 
-        
+
         if (result.TryPickT0(out var error, out var response))
         {
             logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
@@ -71,5 +72,5 @@ public class CanteenProductController(ProductServices productServices,
 
         return Ok(result);
     }
-    
+
 }

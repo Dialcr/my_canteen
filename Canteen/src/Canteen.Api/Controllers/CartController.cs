@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.CanteenRequest;
 using Canteen.Services.Dto.Order;
 using Canteen.Services.Services;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Canteen.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class CartController(CartServices cartServices) : ControllerBase
+public class CartController(ICartServices cartServices) : ControllerBase
 {
     [HttpGet]
     [Route("getCart/{userId}")]
@@ -35,8 +36,8 @@ public class CartController(CartServices cartServices) : ControllerBase
             return BadRequest(list);
         }
         return Ok(response);
-    } 
-    
+    }
+
     [HttpPatch]
     [Route("DeleteRequestIntoCart")]
     [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
@@ -50,5 +51,5 @@ public class CartController(CartServices cartServices) : ControllerBase
         }
         return Ok(response);
     }
-    
+
 }
