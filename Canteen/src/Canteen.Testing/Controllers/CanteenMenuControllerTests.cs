@@ -2,6 +2,8 @@ using Canteen.Controllers;
 using Canteen.DataAccess.Entities;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
+using Canteen.Services.Dto.Menu;
+using Canteen.Services.Dto.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -89,6 +91,47 @@ namespace Canteen.Testing.Controllers
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public void CreateMenu_ReturnsOkResult_WhenMenuCreatedSuccessfully()
+        {
+            // Arrange
+            var createMenuDto = new CreateMenuInputDto();
+            var response = new Response<NoContentData>();
+
+            _menuServicesMock.Setup(x => x.CreateMenu(createMenuDto))
+                .Returns(OneOf<ResponseErrorDto, Response<NoContentData>>.FromT1(response));
+
+            // Act
+            var result = _controller.CreateMenu(createMenuDto);
+
+            // Assert
+            Assert.IsType<OkResult>(result);
+        }
+
+        [Fact]
+        public void CreateMenu_ReturnsBadRequest_WhenCreationFails()
+        {
+            // Arrange
+            var createMenuDto = new CreateMenuInputDto();
+            var error = new ResponseErrorDto
+            {
+                Status = 400,
+                Detail = "Failed to create menu"
+            };
+
+            _menuServicesMock.Setup(x => x.CreateMenu(createMenuDto))
+                .Returns(OneOf<ResponseErrorDto, Response<NoContentData>>.FromT0(error));
+
+            // Act
+            var result = _controller.CreateMenu(createMenuDto);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var returnedError = Assert.IsType<ResponseErrorDto>(badRequestResult.Value);
+            Assert.Equal(400, returnedError.Status);
+            Assert.Equal("Failed to create menu", returnedError.Detail);
         }
     }
 }

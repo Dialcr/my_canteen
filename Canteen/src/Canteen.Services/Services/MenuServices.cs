@@ -1,6 +1,8 @@
 ﻿using Canteen.DataAccess;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
+using Canteen.Services.Dto.Menu;
+using Canteen.Services.Dto.Responses;
 
 namespace Canteen.Services.Services;
 
@@ -10,7 +12,7 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
     {
         var menu = FindMenuByEstablishmentAndDate(idEstablishment, date);
 
-        if (IsMenuNotFound(menu))
+        if (menu is null)
         {
             return CreateMenuNotFoundError(idEstablishment, date);
         }
@@ -31,16 +33,44 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
                 menu.Date.Date == date.Date);
     }
 
-    private bool IsMenuNotFound(Menu? menu)
-    {
-        return menu is null;
-    }
-
     private OneOf<ResponseErrorDto, Menu> CreateMenuNotFoundError(int idEstablishment, DateTimeOffset date)
     {
         return Error("Menu not found",
             $"The Menu of establishment with id {idEstablishment} in the date {date} has not found",
             400);
+    }
+    public OneOf<ResponseErrorDto, Response<NoContentData>> CreateMenu(CreateMenuInputDto newMenu)
+    {
+        var existingMenu = context.Menus.Where(x => x.Date.Date == newMenu.MenuDate.Date);
+        if (existingMenu.Any())
+        {
+            return Error("Menu already exists", "Menu already exists in that date ", 400);
+        }
+        var establishment = context.Establishments.Find(newMenu.EstablishmentId);
+        if (establishment is null)
+        {
+            return Error("Establishment not found", "Establishment not found", 400);
+        }
+        var productsIds = newMenu.MenuProducts.Select(x => x.ProductId);
+        var products = context.Products.Where(x => productsIds.Contains(x.Id) && x.EstablishmentId == newMenu.EstablishmentId)
+        .Include(x => x.EstablishmentId);
+        if (products.Count() != productsIds.Count())
+        {
+            return Error("Some products no found from that establishment", "Some products no found from that establishment", 400);
+        }
+        var menu = new Menu()
+        {
+            Date = newMenu.MenuDate,
+            EstablishmentId = newMenu.EstablishmentId,
+            MenuProducts = newMenu.MenuProducts.Select(x => new Canteen.DataAccess.Entities.MenuProduct()
+            {
+                CanteenProductId = x.ProductId,
+                Quantity = x.Quantity,
+            }).ToList()
+        };
+        context.Menus.Add(menu);
+
+        return new Response<NoContentData>();
     }
 
 }
