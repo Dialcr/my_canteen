@@ -70,7 +70,7 @@ public class CanteenProductController(IProductServices productServices,
         }
         logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
 
-        return Ok(result);
+        return Ok(response);
     }
 
 }

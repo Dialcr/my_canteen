@@ -93,11 +93,12 @@ namespace Canteen.Testing.Controllers
             var products = new List<ProductOutputDto>
             {
                 new() { Id = 1, Name = "Veg Product 1" },
-                new() { Id = 2, Name = "Veg Product 2" }
-            };
+                new() { Id = 2, Name = "Veg Product 2", DietaryRestrictions =  new List<DietaryRestriction> { new DietaryRestriction{
+                    Description = restriction } } }
+    };
 
             _productServicesMock.Setup(x => x.GetCantneeProductsByDietaryRestrictions(restriction))
-                .Returns(OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>.FromT1(products));
+                        .Returns(OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>.FromT1(products));
 
             // Act
             var result = _controller.GetCantneeProductsByDietaryRestrictions(restriction);
