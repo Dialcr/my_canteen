@@ -6,7 +6,7 @@ namespace Canteen.Services.Abstractions;
 
 public interface IProductServices
 {
-    Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(ProductCategory categoryProduct);
+    Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(string categoryProduct);
     OneOf<ResponseErrorDto, IEnumerable<MenuProduct>> GetCantneeProductsByMenu(Menu dayMenu);
     OneOf<ResponseErrorDto, Product> GetCantneeProductById(int productId);
     OneOf<ResponseErrorDto, ICollection<ProductOutputDto>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction);

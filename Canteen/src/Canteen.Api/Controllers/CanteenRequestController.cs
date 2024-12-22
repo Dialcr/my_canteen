@@ -1,8 +1,10 @@
-﻿using Canteen.DataAccess.Entities;
+﻿using AvangTur.Application.Extensions;
+using Canteen.DataAccess.Entities;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.CanteenRequest;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Canteen.Controllers;
 
@@ -27,10 +29,10 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<RequestOutputDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<RequestOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getRequestList")]
-    public async Task<ActionResult<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>>> GetRequestList(int userId)
+    [Route("all")]
+    public async Task<ActionResult<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>>> GetRequestList(int userId, int page, int perPage)
     {
         var result = await requestServices.RequestsListAsync(userId);
 
@@ -41,15 +43,15 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
 
         LogRequestFound(userId);
         var requestList = response.Select(x => x.ToCanteenRequestWithProductsDto());
-        return Ok(requestList);
+        return Ok(requestList.ToPagedResult(page, perPage));
     }
 
 
     [HttpGet]
-    [ProducesResponseType(typeof(ICollection<CanteenRequest>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<CanteenRequest>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getHistoryRequests")]
-    public IActionResult GetHistoryRequests(int userId)
+    [Route("history")]
+    public IActionResult GetHistoryRequests(int userId, int page, int perPage)
     {
         var result = requestServices.HistoryRequestAsync(userId);
 
@@ -63,14 +65,14 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
 
         logger.LogInformation($"History Request of user {userId} found correctly");
 
-        return Ok(response.Select(x => x.ToCanteenRequestWithProductsDto()));
+        return Ok(response.Select(x => x.ToCanteenRequestWithProductsDto()).ToPagedResult(page, perPage));
     }
 
     [HttpPatch]
     [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(IEnumerable<Product>), StatusCodes.Status400BadRequest)]
-    [Route("MoveRequestIntoOrder")]
+    [Route("move/order")]
     public async Task<ActionResult<OneOf<ResponseErrorDto, CanteenRequest>>> MoveRequestIntoOrder(int requestId, DateTime moveDate)
     {
         var result = await requestServices.MoveRequestIntoOrderAsync(requestId, moveDate);
@@ -91,7 +93,7 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     }
 
     [HttpPost]
-    [Route("createRequest")]
+    [Route("create")]
     [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRequest([FromBody] CreateRequestInputDto createRequestDto, int userId)
@@ -110,8 +112,8 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
         return Ok(cart);
     }
 
-    [HttpPatch]
-    [Route("EditRequestIntoOrder")]
+    [HttpPut]
+    [Route("edit/order")]
     [ProducesResponseType(typeof(CanteenRequest), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> EditRequestIntoOrder([FromBody] EditRequestDto requestDto)
@@ -130,7 +132,7 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
 
     }
 
-    [HttpPost("{requestId}/PlanningRequestIntoOrder")]
+    [HttpPost("{requestId}/plan/order")]
     [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PlanningRequestIntoOrder(
@@ -170,7 +172,7 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     [HttpGet]
     [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getRequest")]
+    [Route("{requestId}")]
     public IActionResult GetRequest(int requestId)
     {
         var result = requestServices.GetRequerstInfoById(requestId);
@@ -190,7 +192,7 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     [HttpPatch]
     [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("cancelRequest")]
+    [Route("cancel")]
     public async Task<IActionResult> CancelRequestIntoOrder(int requestId)
     {
         var result = await orderServices.CancelRequestIntoOrderAsync(requestId);
@@ -206,8 +208,8 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
         return Ok(response);
     }
 
-    [HttpPatch]
-    [Route("EditRequestIntoCart")]
+    [HttpPut]
+    [Route("edit/cart")]
     [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> EditRequestIntoCart(EditRequestDto requestDto)

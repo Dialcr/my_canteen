@@ -39,7 +39,7 @@ public class CartController(ICartServices cartServices) : ControllerBase
     }
 
     [HttpPatch]
-    [Route("DeleteRequestIntoCart")]
+    [Route("delete/cart")]
     [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteRequestIntoCart(int userId, int cartId, int requestId)

@@ -1,9 +1,11 @@
-﻿using Canteen.DataAccess.Entities;
+﻿using AvangTur.Application.Extensions;
+using Canteen.DataAccess.Entities;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Mapper;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Canteen.Controllers;
 
@@ -16,7 +18,7 @@ public class CanteenProductController(IProductServices productServices,
     [HttpGet]
     [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("GetCanteenProductById")]
+    [Route("get/{productId}")]
     public IActionResult GetCanteenProductById(int productId)
     {
         var result = productServices.GetCantneeProductById(productId);
@@ -34,10 +36,10 @@ public class CanteenProductController(IProductServices productServices,
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getCantneeProductsByCategory")]
-    public IActionResult GetCantneeProductsByCategory(ProductCategory categoryProduct)
+    [Route("get/category")]
+    public IActionResult GetCantneeProductsByCategory(string categoryProduct, int page, int perPage)
     {
         var result = productServices.GetCantneeProductsByCategoryAsync(categoryProduct);
 
@@ -50,14 +52,14 @@ public class CanteenProductController(IProductServices productServices,
 
         logger.LogInformation($"All CantneeProduct of category  found correctly {categoryProduct}");
 
-        return Ok(response);
+        return Ok(response.ToPagedResult(page, perPage));
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getCantneeProductsByDietaryRestrictions")]
-    public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
+    [Route("get/dietary/restriction")]
+    public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction, int page, int perPage)
     {
         var result = productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
 
@@ -70,7 +72,7 @@ public class CanteenProductController(IProductServices productServices,
         }
         logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
 
-        return Ok(response);
+        return Ok(response.ToPagedResult(page, perPage));
     }
 
 }

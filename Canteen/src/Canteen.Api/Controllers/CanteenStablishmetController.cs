@@ -13,7 +13,7 @@ public class CanteenStablishmentController(
 {
 
     [HttpGet]
-    [Route("getAllsEstablishments")]
+    [Route("get/all")]
     [ProducesResponseType(typeof(IEnumerable<EstablishmentOutputDto>), StatusCodes.Status200OK)]
     public IActionResult GetAllSEstablishments()
     {
@@ -22,7 +22,7 @@ public class CanteenStablishmentController(
     }
 
     [HttpGet]
-    [Route("getEstablishmentById")]
+    [Route("{id}")]
     [ProducesResponseType(typeof(EstablishmentOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetEstablishmentById(int id)

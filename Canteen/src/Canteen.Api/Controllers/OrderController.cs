@@ -8,7 +8,7 @@ namespace Canteen.Controllers;
 public class OrderController(ICanteenOrderServices orderServices, ILogger<OrderController> logger) : ControllerBase
 {
     [HttpGet]
-    [Route("getOrders/{userId}")]
+    [Route("get/{userId}")]
     [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetOrders(int userId)

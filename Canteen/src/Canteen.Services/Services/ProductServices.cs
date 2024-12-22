@@ -12,11 +12,15 @@ namespace Canteen.Services.Services;
 
 public class ProductServices(EntitiesContext context) : CustomServiceBase(context), IProductServices
 {
-    public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(ProductCategory categoryProduct)
+    public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(string categoryProduct)
     {
+        if (!System.Enum.TryParse(categoryProduct, out ProductCategory category))
+        {
+
+        }
         var result = await context.Products.Include(x => x.DietaryRestrictions)
             .Include(x => x.ImagesUrl)
-            .Where(x => x.Category == categoryProduct).ToListAsync();
+            .Where(x => x.Category == category).ToListAsync();
 
         if (result is null)
         {

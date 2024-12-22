@@ -14,7 +14,7 @@ public class CanteenMenuController(IMenuServices menuServices,
     [HttpGet]
     [ProducesResponseType(typeof(MenuOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getMenuByEstablishmentAndDate")]
+    [Route("get")]
     public IActionResult GetMenuByEstablishmentDate(
         int idEstablishment,
         DateTime date)
