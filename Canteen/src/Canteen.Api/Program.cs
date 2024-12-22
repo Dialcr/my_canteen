@@ -1,7 +1,10 @@
 using Canteen;
 using Canteen.DataAccess;
+using Canteen.DataAccess.Entities;
+using Canteen.DataAccess.Enums;
 using Canteen.Middlewares;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 const string corsPolicyName = "MyCustomPolicy";
@@ -32,6 +35,13 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<EntitiesContext>();
     dbContext.Database.Migrate();
 }
+using (var scopeDoWork = app.Services.CreateScope())
+{
+    var dbContext = scopeDoWork.ServiceProvider.GetRequiredService<EntitiesContext>();
+    var userManager = scopeDoWork.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+}
+
+await CreateData.AddDataIntoDatabaseAsync(app.Services, builder.Configuration);
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
 // {

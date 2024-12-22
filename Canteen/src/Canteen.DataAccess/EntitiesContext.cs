@@ -2,11 +2,12 @@
 using Canteen.DataAccess.Enums;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Canteen.DataAccess;
 
-public class EntitiesContext : DbContext, IDataProtectionKeyContext
+public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int>, IDataProtectionKeyContext
 {
     public EntitiesContext(DbContextOptions<EntitiesContext> options) : base(options)
     {
@@ -29,8 +30,7 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     public DbSet<CanteenCart> Carts { get; set; }
     public DbSet<DeliveryTime> DeliveryTimes { get; set; }
     public DbSet<AppUser> Users { get; set; }
-
-
+    public DbSet<IdentityRole> IdentityRole { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureOrderEntity(modelBuilder);
@@ -41,10 +41,14 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         ConfigureDiscountEntity(modelBuilder);
         ConfigureCanteenCartEntity(modelBuilder);
         ConfigureOrderIdentity(modelBuilder);
+
     }
 
     private void ConfigureOrderIdentity(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<IdentityUserLogin<int>>()
+            .HasKey(l => new { l.LoginProvider, l.ProviderKey, l.UserId });
+
         modelBuilder
             .Entity<IdentityRole<int>>()
             .HasData(

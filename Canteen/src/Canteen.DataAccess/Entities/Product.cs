@@ -26,6 +26,6 @@ public class Product
 
     public ICollection<DietaryRestriction> DietaryRestrictions { get; set; } = [];
     public string Ingredients { get; set; }
-    public ICollection<ProductImageUrl>? ImagesUrl { get; set; }
+    public ICollection<ProductImageUrl> ImagesUrl { get; set; } = [];
 
 }
