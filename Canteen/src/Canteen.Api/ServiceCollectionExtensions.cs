@@ -6,6 +6,12 @@ using Microsoft.OpenApi.Models;
 using Canteen.Services;
 using Canteen.Services.IpAdress;
 using Canteen.Services.Services;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using Canteen.DataAccess.Entities;
 
 namespace Canteen;
 
@@ -65,7 +71,80 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection SetAuthentication(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
+    {
+        var a = configuration
+            .GetSection("Authentication")
+            .GetSection("Password")
+            .GetValue<int>("RequiredLength");
+        services
+            .AddIdentity<AppUser, IdentityRole<int>>(options =>
+            {
+                options.Password.RequiredLength = configuration
+                    .GetSection("Authentication")
+                    .GetSection("Password")
+                    .GetValue<int>("RequiredLength");
+                options.Password.RequireNonAlphanumeric = configuration
+                    .GetSection("Authentication")
+                    .GetSection("Password")
+                    .GetValue<bool>("RequireNonAlphanumeric");
+                options.Password.RequireDigit = configuration
+                    .GetSection("Authentication")
+                    .GetSection("Password")
+                    .GetValue<bool>("RequireDigit");
+                options.Password.RequireLowercase = configuration
+                    .GetSection("Authentication")
+                    .GetSection("Password")
+                    .GetValue<bool>("RequireLowercase");
+                options.Password.RequireUppercase = configuration
+                    .GetSection("Authentication")
+                    .GetSection("Password")
+                    .GetValue<bool>("RequireUppercase");
 
+                options.ClaimsIdentity = new ClaimsIdentityOptions
+                {
+                    EmailClaimType = ClaimTypes.Email,
+                    RoleClaimType = ClaimTypes.Role,
+                    UserIdClaimType = ClaimTypes.NameIdentifier,
+                    UserNameClaimType = ClaimTypes.Name
+                };
+                //change this emailconfirm
+                options.SignIn.RequireConfirmedEmail = false;
+            })
+            .AddEntityFrameworkStores<EntitiesContext>()
+            .AddDefaultTokenProviders()
+            .AddApiEndpoints();
+
+        services
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+
+                    ValidAudience = configuration["JwtSettings:Audience"],
+                    ValidIssuer = configuration["JwtSettings:Issuer"],
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"])
+                    ),
+                };
+            });
+
+        return services;
+    }
 
 
 }

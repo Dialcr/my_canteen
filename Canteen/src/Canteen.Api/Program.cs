@@ -15,6 +15,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.SetSettings(builder.Configuration);
 builder.Services.SetDbContext(builder.Configuration);
 builder.Services.SetOurServices();
+builder.Services.SetAuthentication(builder.Configuration);
 builder.Services.SetCors(builder.Configuration, corsPolicyName);
 builder.Services.AddTransient<IpAddressMiddleware>();
 
