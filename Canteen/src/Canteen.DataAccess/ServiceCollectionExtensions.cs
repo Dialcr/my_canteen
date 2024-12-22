@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
         // var serverVersion = new MySqlServerVersion(new Version(8, 0, 33));
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddDataProtection().PersistKeysToDbContext<EntitiesContext>();
+        // services.AddDataProtection().PersistKeysToDbContext<EntitiesContext>();
         services.AddDbContext<DbContext, EntitiesContext>(options => options
             .UseNpgsql(connectionString).EnableDetailedErrors().EnableSensitiveDataLogging());
         // services.AddDbContext<DbContext, EntitiesContext>(options => options

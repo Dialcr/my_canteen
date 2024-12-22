@@ -3,14 +3,16 @@ using Canteen.Services.Abstractions;
 using Canteen.Services.EmailServices;
 using Canteen.Services.IpAdress;
 using Canteen.Services.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Canteen.Services;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection SetOurServices(this IServiceCollection services)
+    public static IServiceCollection SetOurServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
         services.AddSingleton<IEmailSender, AmazonSesEmailSender>();
         services.AddScoped<IpAddressServices, IpAddressServices>();

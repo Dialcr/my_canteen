@@ -1,9 +1,5 @@
-﻿using Canteen.DataAccess.Entities;
-using Canteen.DataAccess.Settings;
+﻿using Canteen.DataAccess.Settings;
 using Canteen.Services.Abstractions;
-using Canteen.Services.Dto.CanteenRequest;
-using Canteen.Services.Dto.Order;
-using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
@@ -13,8 +9,8 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
 {
     [HttpGet]
     [Route("getCart")]
-    [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
 
     public async Task<IActionResult> GetCart()
     {
@@ -35,8 +31,8 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
     }
     [HttpPatch]
     [Route("checkout")]
-    [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(IEnumerable<RequestInputDto>), StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(IEnumerable<RequestInputDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApplyDiscountToCart(int cardId)
     {
         var result = await cartServices.CheckoutAsync(cardId);
@@ -49,8 +45,8 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
 
     [HttpPatch]
     [Route("delete/cart")]
-    [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteRequestIntoCart(int cartId, int requestId)
     {
         string? accessToken = HttpContext

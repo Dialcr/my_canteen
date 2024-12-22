@@ -90,33 +90,42 @@ public class UserServicers(UserManager<AppUser> _userManager,
     }
 
     public async Task<OneOf<ResponseErrorDto, AuthResponseDtoOutput>> LoginAsync(
-        string username,
+        string userEmail,
         string userPassword
     )
     {
-        var user = _userManager.Users.FirstOrDefault(x => x.UserName == username);
+        // var user = _userManager.Users.FirstOrDefault(x => x.UserName == username);
+        var user = await _userManager.FindByEmailAsync(userEmail);
         if (user is not null)
         {
-            var result = await _signInManager.PasswordSignInAsync(user, userPassword, false, false);
-
-            if (result.Succeeded)
+            try
             {
-                var role = await _userManager.GetRolesAsync(user);
-                var token = await _tokenUtil.GenerateTokenAsync(user);
-                return new AuthResponseDtoOutput()
-                {
-                    User = new UserOutputDto()
-                    {
-                        Name = user.UserName!,
-                        Email = user.Email!,
-                        Role = role[0]
-                    },
-                    Authentication = new Jwt() { AccessToken = token },
-                    UserId = user.Id
-                };
-            }
 
-            return Error("password incorrect", "password incorrect", 400);
+                var result = await _signInManager.PasswordSignInAsync(user, userPassword, false, false);
+
+                if (result.Succeeded)
+                {
+                    var role = await _userManager.GetRolesAsync(user);
+                    var token = await _tokenUtil.GenerateTokenAsync(user);
+                    return new AuthResponseDtoOutput()
+                    {
+                        User = new UserOutputDto()
+                        {
+                            Name = user.UserName!,
+                            Email = user.Email!,
+                            Role = role[0]
+                        },
+                        Authentication = new Jwt() { AccessToken = token },
+                        UserId = user.Id
+                    };
+                }
+
+                return Error("password incorrect", "password incorrect", 400);
+            }
+            catch (Exception e)
+            {
+                return Error($"{e.InnerException}", $"{e.Message}", 400);
+            }
         }
         return Error("user not found", "user not found", 400);
     }

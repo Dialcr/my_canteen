@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Canteen.DataAccess;
 
-public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int>, IDataProtectionKeyContext
+public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int> //, IDataProtectionKeyContext
 {
     public EntitiesContext(DbContextOptions<EntitiesContext> options) : base(options)
     {

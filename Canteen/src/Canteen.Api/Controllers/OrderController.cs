@@ -11,8 +11,8 @@ public class OrderController(ICanteenOrderServices orderServices, ILogger<OrderC
 {
     [HttpGet]
     [Route("get")]
-    [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetOrders()
     {
         string? accessToken = HttpContext

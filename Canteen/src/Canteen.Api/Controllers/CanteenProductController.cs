@@ -13,8 +13,8 @@ public class CanteenProductController(IProductServices productServices,
 {
 
     [HttpGet]
-    [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get/{productId}")]
     [AllowAnonymous]
     public IActionResult GetCanteenProductById(int productId)
@@ -34,8 +34,8 @@ public class CanteenProductController(IProductServices productServices,
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get/category")]
     [AllowAnonymous]
     public IActionResult GetCantneeProductsByCategory(string categoryProduct, int page, int perPage)
@@ -55,8 +55,8 @@ public class CanteenProductController(IProductServices productServices,
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get/dietary/restriction")]
     [AllowAnonymous]
     public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction, int page, int perPage)
