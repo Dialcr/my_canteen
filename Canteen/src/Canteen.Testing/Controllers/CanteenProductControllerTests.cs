@@ -66,13 +66,13 @@ namespace Canteen.Testing.Controllers
         public void GetCantneeProductsByCategory_ReturnsOkResult_WhenProductsExist()
         {
             // Arrange
-            var category = ProductCategory.Entrante.ToString();
+            var category = ProductCategory.Starter.ToString();
             var page = 1;
             var perPage = 10;
             var products = new List<ProductOutputDto>
             {
-                new() { Id = 1, Name = "Product 1", Category = ProductCategory.Entrante },
-                new() { Id = 2, Name = "Product 2", Category = ProductCategory.Entrante }
+                new() { Id = 1, Name = "Product 1", Category = ProductCategory.Starter },
+                new() { Id = 2, Name = "Product 2", Category = ProductCategory.Starter }
             };
 
             _productServicesMock.Setup(x => x.GetCantneeProductsByCategoryAsync(category))
