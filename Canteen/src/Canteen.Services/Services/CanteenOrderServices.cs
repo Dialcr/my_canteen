@@ -7,7 +7,7 @@ using Canteen.Services.Dto.Order;
 
 namespace Canteen.Services.Services;
 
-public class CanteenOrderServices(EntitiesContext context, MenuServices menuServices) : CustomServiceBase(context), ICanteenOrderServices
+public class CanteenOrderServices(EntitiesContext context, IMenuServices menuServices) : CustomServiceBase(context), ICanteenOrderServices
 {
     public async Task<OneOf<ResponseErrorDto, Order>> ApplyDiscountToOrderAsync(
         int orderId)

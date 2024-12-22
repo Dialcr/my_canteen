@@ -3,6 +3,7 @@
 using Canteen.DataAccess.Entities;
 using Canteen.DataAccess.Enums;
 using Canteen.DataAccess.Settings;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.User;
 using Canteen.Services.Security;
 using Canteen.Services.Services;
@@ -20,14 +21,14 @@ public class AuthController : ControllerBase
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly TokenUtil _tokenUtil;
-    private readonly UserServicers _userServicers;
+    private readonly IUserServices _userServicers;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthController(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         TokenUtil tokenUtil,
-        UserServicers userServicers,
+        IUserServices userServicers,
         IHttpContextAccessor httpContextAccessor
     )
     {

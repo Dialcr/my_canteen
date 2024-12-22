@@ -2,7 +2,7 @@
 
 ---
 
-## C:\Users\Diego\RiderProjects\github\cantinabackend\Canteen\src
+## cantinabackend\Canteen\src
 
 ---
 

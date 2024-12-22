@@ -13,8 +13,8 @@ namespace Canteen.Controllers;
 [Route("api/[controller]")]
 public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     IRequestServices requestServices,
-    CanteenOrderServices orderServices,
-    CartServices cartServices,
+    ICanteenOrderServices orderServices,
+    ICartServices cartServices,
     TokenUtil tokenUtil) : ControllerBase
 {
 

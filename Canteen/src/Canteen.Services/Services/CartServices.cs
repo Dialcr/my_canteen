@@ -7,7 +7,7 @@ using Canteen.Services.Dto.Order;
 
 namespace Canteen.Services.Services;
 
-public class CartServices(EntitiesContext context, CanteenOrderServices orderServices, RequestServices requestServices) : CustomServiceBase(context), ICartServices
+public class CartServices(EntitiesContext context, ICanteenOrderServices orderServices, IRequestServices requestServices) : CustomServiceBase(context), ICartServices
 {
     public async Task<OneOf<IEnumerable<RequestProductOutputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
     {

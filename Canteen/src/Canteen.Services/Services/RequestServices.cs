@@ -11,8 +11,8 @@ namespace Canteen.Services.Services;
 public class RequestServices(
     EntitiesContext context,
     ILogger<RequestServices> logger,
-    ProductServices services,
-    MenuServices menuServices) : CustomServiceBase(context), IRequestServices
+    IProductServices services,
+    IMenuServices menuServices) : CustomServiceBase(context), IRequestServices
 {
     public async Task<OneOf<ResponseErrorDto, CanteenRequest>> AddProductsToRequestAsync(
         int requestId,

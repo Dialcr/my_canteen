@@ -15,14 +15,14 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IEmailSender, AmazonSesEmailSender>();
         services.AddScoped<IpAddressServices, IpAddressServices>();
 
+        services.AddScoped<IMenuServices, MenuServices>();
         services.AddScoped<ICanteenOrderServices, CanteenOrderServices>();
         services.AddScoped<ICartServices, CartServices>();
         services.AddScoped<IEstablishmentService, EstablishmentService>();
-        services.AddScoped<IMenuServices, MenuServices>();
         services.AddScoped<IProductServices, ProductServices>();
         services.AddScoped<IRequestServices, RequestServices>();
         services.AddScoped<IUserServices, UserServicers>();
-        services.AddScoped<TokenUtil>();
+        services.AddScoped<TokenUtil, TokenUtil>();
 
         return services;
     }
