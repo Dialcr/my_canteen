@@ -33,6 +33,7 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
     public DbSet<IdentityRole> IdentityRole { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         ConfigureOrderEntity(modelBuilder);
         ConfigureEstablishmentEntity(modelBuilder);
         ConfigureMenuEntity(modelBuilder);
@@ -46,8 +47,8 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
 
     private void ConfigureOrderIdentity(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<IdentityUserLogin<int>>()
-            .HasKey(l => new { l.LoginProvider, l.ProviderKey, l.UserId });
+        // modelBuilder.Entity<IdentityUserLogin<int>>()
+        //     .HasKey(l => new { l.LoginProvider, l.ProviderKey, l.UserId });
 
         modelBuilder
             .Entity<IdentityRole<int>>()
