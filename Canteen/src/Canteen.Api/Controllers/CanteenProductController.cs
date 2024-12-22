@@ -1,11 +1,8 @@
 ﻿using AvangTur.Application.Extensions;
-using Canteen.DataAccess.Entities;
-using Canteen.DataAccess.Enums;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Mapper;
-using Canteen.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Canteen.Controllers;
 
@@ -19,6 +16,7 @@ public class CanteenProductController(IProductServices productServices,
     [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get/{productId}")]
+    [AllowAnonymous]
     public IActionResult GetCanteenProductById(int productId)
     {
         var result = productServices.GetCantneeProductById(productId);
@@ -39,6 +37,7 @@ public class CanteenProductController(IProductServices productServices,
     [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get/category")]
+    [AllowAnonymous]
     public IActionResult GetCantneeProductsByCategory(string categoryProduct, int page, int perPage)
     {
         var result = productServices.GetCantneeProductsByCategoryAsync(categoryProduct);
@@ -59,6 +58,7 @@ public class CanteenProductController(IProductServices productServices,
     [ProducesResponseType(typeof(PagedResponse<ProductOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get/dietary/restriction")]
+    [AllowAnonymous]
     public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction, int page, int perPage)
     {
         var result = productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);

@@ -130,6 +130,7 @@ public class RequestServices(
             TotalAmount = requestProducts.Sum(x => x.UnitPrice * x.Quantity),
             DeliveryAmount = createRequestInputDto.DeliveryAmount,
             Status = RequestStatus.Planned,
+            //todo add delivery type verification
             DeliveryTimeId = createRequestInputDto.DeliveryTimeId,
             RequestProducts = requestProducts
         };

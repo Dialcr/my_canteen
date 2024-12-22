@@ -1,4 +1,5 @@
-﻿using Canteen.Services.Abstractions;
+﻿using Canteen.DataAccess.Settings;
+using Canteen.Services.Abstractions;
 using Canteen.Services.EmailServices;
 using Canteen.Services.IpAdress;
 using Canteen.Services.Services;
@@ -20,6 +21,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMenuServices, MenuServices>();
         services.AddScoped<IProductServices, ProductServices>();
         services.AddScoped<IRequestServices, RequestServices>();
+        services.AddScoped<IUserServices, UserServicers>();
+        services.AddScoped<TokenUtil>();
+
         return services;
     }
 

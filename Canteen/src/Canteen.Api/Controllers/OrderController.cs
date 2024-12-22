@@ -1,18 +1,27 @@
-﻿using Canteen.Services.Abstractions;
+﻿using Canteen.DataAccess.Settings;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Order;
 using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
 
-public class OrderController(ICanteenOrderServices orderServices, ILogger<OrderController> logger) : ControllerBase
+public class OrderController(ICanteenOrderServices orderServices, ILogger<OrderController> logger, TokenUtil tokenUtil) : ControllerBase
 {
     [HttpGet]
-    [Route("get/{userId}")]
+    [Route("get")]
     [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetOrders(int userId)
+    public async Task<IActionResult> GetOrders()
     {
+        string? accessToken = HttpContext
+            .Request.Headers["Authorization"]
+            .FirstOrDefault()
+            ?.Split(" ")
+            .Last();
+        accessToken = accessToken!.Replace("Bearer", "");
+        var userId = tokenUtil.GetUserIdFromToken(accessToken);
+
         var result = await orderServices.GetOrderByUserIdAsync(userId);
         if (result.TryPickT0(out var error, out var response))
         {

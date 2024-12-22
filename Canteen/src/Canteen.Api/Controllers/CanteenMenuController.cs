@@ -1,6 +1,8 @@
-﻿using Canteen.Services.Abstractions;
+﻿using Canteen.DataAccess.Enums;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Menu;
 using Canteen.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
@@ -15,6 +17,7 @@ public class CanteenMenuController(IMenuServices menuServices,
     [ProducesResponseType(typeof(MenuOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get")]
+    [AllowAnonymous]
     public IActionResult GetMenuByEstablishmentDate(
         int idEstablishment,
         DateTime date)
@@ -36,6 +39,7 @@ public class CanteenMenuController(IMenuServices menuServices,
     [ProducesResponseType(typeof(MenuOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("create")]
+    [Authorize(Roles = nameof(RoleNames.Admin))]
     public IActionResult CreateMenu(
         CreateMenuInputDto menu)
     {

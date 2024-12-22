@@ -1,5 +1,6 @@
 ﻿using AvangTur.Application.Extensions;
 using Canteen.DataAccess.Entities;
+using Canteen.DataAccess.Settings;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.CanteenRequest;
 using Canteen.Services.Services;
@@ -13,7 +14,8 @@ namespace Canteen.Controllers;
 public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     IRequestServices requestServices,
     CanteenOrderServices orderServices,
-    CartServices cartServices) : ControllerBase
+    CartServices cartServices,
+    TokenUtil tokenUtil) : ControllerBase
 {
 
 
@@ -32,8 +34,16 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     [ProducesResponseType(typeof(PagedResponse<RequestOutputDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("all")]
-    public async Task<ActionResult<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>>> GetRequestList(int userId, int page, int perPage)
+    public async Task<ActionResult<OneOf<ResponseErrorDto, ICollection<CanteenRequest>>>> GetRequestList(int page, int perPage)
     {
+        string? accessToken = HttpContext
+            .Request.Headers["Authorization"]
+            .FirstOrDefault()
+            ?.Split(" ")
+            .Last();
+        accessToken = accessToken!.Replace("Bearer", "");
+        var userId = tokenUtil.GetUserIdFromToken(accessToken);
+
         var result = await requestServices.RequestsListAsync(userId);
 
         if (result.TryPickT0(out var error, out var response))
@@ -51,8 +61,16 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     [ProducesResponseType(typeof(PagedResponse<CanteenRequest>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("history")]
-    public IActionResult GetHistoryRequests(int userId, int page, int perPage)
+    public IActionResult GetHistoryRequests(int page, int perPage)
     {
+        string? accessToken = HttpContext
+            .Request.Headers["Authorization"]
+            .FirstOrDefault()
+            ?.Split(" ")
+            .Last();
+        accessToken = accessToken!.Replace("Bearer", "");
+        var userId = tokenUtil.GetUserIdFromToken(accessToken);
+
         var result = requestServices.HistoryRequestAsync(userId);
 
         if (result.Result.TryPickT0(out var error, out var response))
@@ -96,8 +114,15 @@ public class CanteenRequestController(ILogger<CanteenRequestController> logger,
     [Route("create")]
     [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateRequest([FromBody] CreateRequestInputDto createRequestDto, int userId)
+    public async Task<IActionResult> CreateRequest([FromBody] CreateRequestInputDto createRequestDto)
     {
+        string? accessToken = HttpContext
+            .Request.Headers["Authorization"]
+            .FirstOrDefault()
+            ?.Split(" ")
+            .Last();
+        accessToken = accessToken!.Replace("Bearer", "");
+        var userId = tokenUtil.GetUserIdFromToken(accessToken);
 
         var result = await requestServices.CreateRequestAsync(createRequestDto, userId);
 
