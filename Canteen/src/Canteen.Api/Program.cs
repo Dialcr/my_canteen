@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -20,14 +21,15 @@ builder.Services.SetDbContext(builder.Configuration);
 builder.Services.SetOurServices();
 builder.Services.SetAuthentication(builder.Configuration);
 builder.Services.SetCors(builder.Configuration, corsPolicyName);
-builder.Services.AddTransient<IpAddressMiddleware>();
+// builder.Services.AddTransient<IpAddressMiddleware>();
 
-builder.Services.AddControllers();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders =
         ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 });
+builder.Services.SetSwagger();
+
 var app = builder.Build();
 app.UseMiddleware<GlobalErrorHandlerMiddleware>();
 using (var scope = app.Services.CreateScope())
@@ -49,7 +51,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 // }
 
-app.MapControllers();
+app.MapControllers().RequireAuthorization();
 app.UseHttpsRedirection();
 
 app.Run();

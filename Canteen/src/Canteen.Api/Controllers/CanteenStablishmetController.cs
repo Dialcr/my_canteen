@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
 [ApiController]
-[Route("Canteen/[controller]")]
+[Route("api/[controller]")]
 public class CanteenStablishmentController(
     IEstablishmentService establishmentService,
     ILogger<CanteenStablishmentController> logger) : ControllerBase
