@@ -66,23 +66,24 @@ namespace Canteen.Testing.Controllers
         public void GetCantneeProductsByCategory_ReturnsOkResult_WhenProductsExist()
         {
             // Arrange
-            var category = ProductCategory.Entrante;
+            var category = ProductCategory.Entrante.ToString();
+            var page = 1;
+            var perPage = 10;
             var products = new List<ProductOutputDto>
             {
-                new() { Id = 1, Name = "Product 1", Category = category },
-                new() { Id = 2, Name = "Product 2", Category = category }
+                new() { Id = 1, Name = "Product 1", Category = ProductCategory.Entrante },
+                new() { Id = 2, Name = "Product 2", Category = ProductCategory.Entrante }
             };
 
             _productServicesMock.Setup(x => x.GetCantneeProductsByCategoryAsync(category))
                 .ReturnsAsync(OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>.FromT1(products));
 
             // Act
-            var result = _controller.GetCantneeProductsByCategory(category);
+            var result = _controller.GetCantneeProductsByCategory(category, page, perPage);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnedProducts = Assert.IsAssignableFrom<ICollection<ProductOutputDto>>(okResult.Value);
-            Assert.Equal(2, returnedProducts.Count);
+            var returnedProducts = Assert.IsAssignableFrom<PagedResponse<ProductOutputDto>>(okResult.Value);
         }
 
         [Fact]
@@ -90,37 +91,43 @@ namespace Canteen.Testing.Controllers
         {
             // Arrange
             var restriction = "Vegetarian";
+            var page = 1;
+            var perPage = 10;
             var products = new List<ProductOutputDto>
             {
                 new() { Id = 1, Name = "Veg Product 1" },
-                new() { Id = 2, Name = "Veg Product 2", DietaryRestrictions =  new List<DietaryRestriction> { new DietaryRestriction{
-                    Description = restriction } } }
-    };
+                new() { Id = 2, Name = "Veg Product 2", DietaryRestrictions =  new List<DietaryRestriction>{
+                        new DietaryRestriction{
+                            Description = restriction
+                        }
+                    }
+                }
+            };
 
             _productServicesMock.Setup(x => x.GetCantneeProductsByDietaryRestrictions(restriction))
-                        .Returns(OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>.FromT1(products));
+                .Returns(OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>.FromT1(products));
 
             // Act
-            var result = _controller.GetCantneeProductsByDietaryRestrictions(restriction);
+            var result = _controller.GetCantneeProductsByDietaryRestrictions(restriction, page, perPage);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnedProducts = Assert.IsAssignableFrom<ICollection<ProductOutputDto>>(okResult.Value);
-            Assert.Equal(2, returnedProducts.Count);
+            var returnedProducts = Assert.IsAssignableFrom<PagedResponse<ProductOutputDto>>(okResult.Value);
         }
-
         [Fact]
         public void GetCantneeProductsByDietaryRestrictions_ReturnsBadRequest_WhenNoProductsFound()
         {
             // Arrange
             var restriction = "NonExistent";
+            var page = 1;
+            var perPage = 10;
             var error = new ResponseErrorDto { Status = 400, Detail = "No products found" };
 
             _productServicesMock.Setup(x => x.GetCantneeProductsByDietaryRestrictions(restriction))
                 .Returns(OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>.FromT0(error));
 
             // Act
-            var result = _controller.GetCantneeProductsByDietaryRestrictions(restriction);
+            var result = _controller.GetCantneeProductsByDietaryRestrictions(restriction, page, perPage);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
