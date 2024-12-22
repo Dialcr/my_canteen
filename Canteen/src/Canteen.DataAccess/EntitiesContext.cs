@@ -1,5 +1,7 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.DataAccess.Enums;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Canteen.DataAccess;
@@ -8,7 +10,7 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
 {
     public EntitiesContext(DbContextOptions<EntitiesContext> options) : base(options)
     {
-        
+
     }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
@@ -17,7 +19,7 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     public DbSet<RequestProduct> RequestProducts { get; set; }
     public DbSet<Menu> Menus { get; set; }
     public DbSet<MenuProduct> MenuProducts { get; set; }
-    
+
     public DbSet<DataProtectionKey> DataProtectionKeys { get; }
     public DbSet<ProductImageUrl> ProductImageUrls { get; set; }
     public DbSet<Discount> Discounts { get; set; }
@@ -26,8 +28,9 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
 
     public DbSet<CanteenCart> Carts { get; set; }
     public DbSet<DeliveryTime> DeliveryTimes { get; set; }
-    
-    
+    public DbSet<AppUser> Users { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureOrderEntity(modelBuilder);
@@ -37,6 +40,30 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         ConfigureProductEntity(modelBuilder);
         ConfigureDiscountEntity(modelBuilder);
         ConfigureCanteenCartEntity(modelBuilder);
+        ConfigureOrderIdentity(modelBuilder);
+    }
+
+    private void ConfigureOrderIdentity(ModelBuilder modelBuilder)
+    {
+        modelBuilder
+            .Entity<IdentityRole<int>>()
+            .HasData(
+                new IdentityRole<int>[]
+                {
+                    new IdentityRole<int>
+                    {
+                        Id = 1,
+                        Name = RoleNames.Admin,
+                        NormalizedName = RoleNames.Admin.Trim().ToUpper().Replace(" ", ""),
+                    },
+                    new IdentityRole<int>
+                    {
+                        Id = 2,
+                        Name = RoleNames.Client,
+                        NormalizedName = RoleNames.Client.Trim().ToUpper().Replace(" ", ""),
+                    }
+                }
+            );
     }
 
     private void ConfigureOrderEntity(ModelBuilder modelBuilder)
@@ -55,6 +82,10 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         modelBuilder.Entity<Establishment>()
             .HasMany(x => x.Products)
             .WithOne(x => x.Establishment);
+
+        modelBuilder.Entity<Establishment>()
+        .HasMany(x => x.DeliveryTimes)
+        .WithOne(x => x.Establishment);
     }
 
     private void ConfigureMenuEntity(ModelBuilder modelBuilder)
@@ -62,7 +93,7 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         modelBuilder.Entity<Menu>()
             .HasMany(x => x.MenuProducts)
             .WithOne(x => x.Menu);
-    
+
         modelBuilder.Entity<Menu>()
             .HasOne(x => x.Establishment)
             .WithMany(x => x.Menus);
@@ -95,6 +126,12 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     {
         modelBuilder.Entity<CanteenCart>()
             .HasMany(x => x.Requests);
+
+        modelBuilder.Entity<CanteenCart>()
+        .HasOne(x => x.Establishment);
+
+        modelBuilder.Entity<CanteenCart>()
+        .HasOne(x => x.User);
     }
 
 }

@@ -14,13 +14,13 @@ public class Establishment
     [MaxLength(255)]
     public string Description { get; set; }
 
-    public ICollection<Order>? Orders { get; set; }
+    public ICollection<Order> Orders { get; set; } = [];
 
-    public ICollection<Product>? Products { get; set; }
+    public ICollection<Product> Products { get; set; } = [];
 
-    public ICollection<Menu>? Menus { get; set; }
+    public ICollection<Menu> Menus { get; set; } = [];
 
-    public ICollection<Discount>? Discounts { get; set; }
+    public ICollection<Discount> Discounts { get; set; } = [];
 
-    public ICollection<DeliveryTime>? DeliveryTimes { get; set; }
+    public ICollection<DeliveryTime> DeliveryTimes { get; set; } = [];
 }

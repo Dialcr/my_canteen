@@ -9,6 +9,10 @@ public class AppUser : IdentityUser<int>
     public DateTime? LastModified { get; set; }
     public int? EstablishmentId { get; set; }
     public Establishment? Establishment { get; set; }
+    public ICollection<Order> Orders { get; set; } = [];
+    public ICollection<CanteenRequest> CanteenRequests { get; set; } = [];
+
+
 
     // public File? Image { get; set; }
     // public UserPreference? UserPreference { get; set; }
