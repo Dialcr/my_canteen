@@ -20,7 +20,6 @@ public class CanteenMenuController(IMenuServices menuServices,
     // [ProducesResponseType(typeof(MenuOutputDto), StatusCodes.Status200OK)]
     // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get")]
-    [AllowAnonymous]
     public IActionResult GetMenuByEstablishmentDate(
         int establishmentId,
         DateTime date)

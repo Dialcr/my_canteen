@@ -8,7 +8,7 @@ namespace Canteen.Services.Abstractions;
 
 public interface IEstablishmentService
 {
-    IEnumerable<Dto.Establishment.EstablishmentOutputDto> GetAllEstablishments();
+    PagedResponse<Dto.Establishment.EstablishmentOutputDto> GetAllEstablishments(int page, int perPage);
     Task<OneOf<Dto.ResponseErrorDto, Dto.Establishment.EstablishmentOutputDto>> GetEstablishmentByIdAsync(int id);
     Task<OneOf<ResponseErrorDto, Response<NoContent>>> CreateEstablishmentAsync(CreateEstablismentDto establismentDto);
     OneOf<ResponseErrorDto, PagedResponse<DeliveryTimeOupuDto>> GetDeliveryTimesEstablishment(int establishmentId, int page, int perPage);

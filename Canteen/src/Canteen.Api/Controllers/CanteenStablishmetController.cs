@@ -17,15 +17,17 @@ public class CanteenStablishmentController(
 
     [HttpGet]
     [Route("get/all")]
-    [ProducesResponseType(typeof(IEnumerable<EstablishmentOutputDto>), StatusCodes.Status200OK)]
-    public IActionResult GetAllSEstablishments()
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(PagedResponse<EstablishmentOutputDto>), StatusCodes.Status200OK)]
+    public IActionResult GetAllSEstablishments(int page, int perPage)
     {
-        var establishments = establishmentService.GetAllEstablishments();
+        var establishments = establishmentService.GetAllEstablishments(page, perPage);
         return Ok(establishments);
     }
 
     [HttpGet]
     [Route("{id}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(EstablishmentOutputDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetEstablishmentById(int id)

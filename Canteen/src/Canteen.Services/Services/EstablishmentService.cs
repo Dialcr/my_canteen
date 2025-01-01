@@ -14,10 +14,10 @@ namespace Canteen.Services.Services;
 
 public class EstablishmentService(EntitiesContext context) : CustomServiceBase(context), IEstablishmentService
 {
-    public IEnumerable<EstablishmentOutputDto> GetAllEstablishments()
+    public PagedResponse<EstablishmentOutputDto> GetAllEstablishments(int page, int perPage)
     {
         var allEstablishment = context.Establishments.Select(x => x.ToEstablishmentOutputDto());
-        return allEstablishment;
+        return allEstablishment.ToPagedResult(page, perPage);
     }
 
     public async Task<OneOf<ResponseErrorDto, EstablishmentOutputDto>> GetEstablishmentByIdAsync(int id)

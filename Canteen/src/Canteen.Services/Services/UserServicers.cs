@@ -67,9 +67,12 @@ public class UserServicers(UserManager<AppUser> _userManager,
         }
         var user = await _userManager.FindByNameAsync(userIntputDto.Name);
         // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user!);
+        return new UserOutputDto()
+        {
+            Email = user.Email,
+            Name = user.UserName,
+        };
 
-
-        return Error("error registering", $"error registering", 400);
     }
 
     public async Task<OneOf<ResponseErrorDto, UserOutputDto>> EditUser(UserIntputDto userIntputDto)

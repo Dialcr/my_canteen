@@ -28,21 +28,24 @@ namespace Canteen.Testing.Controllers
         public void GetAllSEstablishments_ReturnsOkResult_WithEstablishments()
         {
             // Arrange
-            var expectedEstablishments = new List<EstablishmentOutputDto>
-            {
-                new() { Id = 1, Name = "Test Establishment 1" },
-                new() { Id = 2, Name = "Test Establishment 2" }
-            };
+            int page = 1;
+            int perPage = 10;
 
-            _establishmentServiceMock.Setup(x => x.GetAllEstablishments())
+            var expectedEstablishments = new PagedResponse<EstablishmentOutputDto>(new List<EstablishmentOutputDto>
+                {
+                    new() { Id = 1, Name = "Test Establishment 1" },
+                    new() { Id = 2, Name = "Test Establishment 2" },
+                }, page, perPage, 1, 2);
+
+            _establishmentServiceMock.Setup(x => x.GetAllEstablishments(page, perPage))
                 .Returns(expectedEstablishments);
 
             // Act
-            var result = _controller.GetAllSEstablishments();
+            var result = _controller.GetAllSEstablishments(page, perPage);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnedEstablishments = Assert.IsAssignableFrom<IEnumerable<EstablishmentOutputDto>>(okResult.Value);
+            var returnedEstablishments = Assert.IsType<PagedResponse<EstablishmentOutputDto>>(okResult.Value);
             Assert.Equal(expectedEstablishments, returnedEstablishments);
         }
 
