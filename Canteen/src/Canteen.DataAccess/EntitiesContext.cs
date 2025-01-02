@@ -16,6 +16,7 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<Establishment> Establishments { get; set; }
+    public DbSet<EstablishmentCategory> EstablishmentsCategory { get; set; }
     public DbSet<CanteenRequest> Requests { get; set; }
     public DbSet<RequestProduct> RequestProducts { get; set; }
     public DbSet<Menu> Menus { get; set; }
@@ -91,6 +92,10 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
         modelBuilder.Entity<Establishment>()
         .HasMany(x => x.DeliveryTimes)
         .WithOne(x => x.Establishment);
+
+        modelBuilder.Entity<Establishment>()
+        .HasMany(x => x.EstablishmentCategories)
+        .WithMany(x => x.Establishments);
     }
 
     private void ConfigureMenuEntity(ModelBuilder modelBuilder)

@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRequestServices, RequestServices>();
         services.AddScoped<IUserServices, UserServicers>();
         services.AddScoped<TokenUtil, TokenUtil>();
+        services.AddScoped<IEstablishmentCategoryServices, EstablishmentCategoryServices>();
 
         return services;
     }
