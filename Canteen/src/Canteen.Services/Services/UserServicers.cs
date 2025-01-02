@@ -9,9 +9,6 @@ using Canteen.Services.Dto.User;
 using Canteen.Services.Security;
 using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
-using OneOf.Types;
 
 namespace Canteen.Services.Services;
 
@@ -49,12 +46,25 @@ public class UserServicers(UserManager<AppUser> _userManager,
     // string accountController
     )
     {
+        var establishment = new Establishment();
+        if (userIntputDto.EstablishmentId is not null)
+        {
+            establishment = context.Establishments.FirstOrDefault(x => x.Id == userIntputDto.EstablishmentId);
+            if (establishment is null)
+            {
+                return Error("Establishment not found", $"Establishment no found", 400);
+            }
+        }
+
         var result = await _userManager!.CreateAsync(
             new AppUser()
             {
                 UserName = userIntputDto.Name,
                 Email = userIntputDto.Email,
                 EstablishmentId = userIntputDto.EstablishmentId,
+                LastName = userIntputDto.LastName,
+                PhoneNumber = userIntputDto.PhoneNumber,
+                Address = userIntputDto.Address
             },
             userIntputDto.Password
         );
@@ -62,16 +72,23 @@ public class UserServicers(UserManager<AppUser> _userManager,
         if (!result.Succeeded)
         {
             return Error("error registering",
-                $"error registering",
+                result.Errors.First().Description,
                 400);
         }
+
         var user = await _userManager.FindByNameAsync(userIntputDto.Name);
-        // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user!);
-        return new UserOutputDto()
+        if (userIntputDto.EstablishmentId is not null)
         {
-            Email = user.Email,
-            Name = user.UserName,
-        };
+            await _userManager.AddToRoleAsync(user, RoleNames.Admin.ToUpper());
+        }
+
+        await _userManager.AddToRoleAsync(user, RoleNames.Client.ToUpper());
+
+        // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user!);
+        var response = user!.ToUserOutputDto();
+        var role = await _userManager.GetRolesAsync(user);
+        response.Role = role;
+        return response;
 
     }
 
@@ -85,10 +102,14 @@ public class UserServicers(UserManager<AppUser> _userManager,
 
         user.Email = userIntputDto.Email;
         user.EstablishmentId = userIntputDto.EstablishmentId;
+        user.PhoneNumber = userIntputDto.PhoneNumber;
+        user.Address = userIntputDto.Address;
+        user.LastName = userIntputDto.LastName;
+        user.UserName = userIntputDto.Name;
 
         var userOutput = user.ToUserOutputDto();
         var role = await _userManager.GetRolesAsync(user);
-        userOutput.Role = role[0];
+        userOutput.Role = role;
         return userOutput;
     }
 
@@ -116,7 +137,7 @@ public class UserServicers(UserManager<AppUser> _userManager,
                         {
                             Name = user.UserName!,
                             Email = user.Email!,
-                            Role = role[0]
+                            Role = role
                         },
                         Authentication = new Jwt() { AccessToken = token },
                         UserId = user.Id

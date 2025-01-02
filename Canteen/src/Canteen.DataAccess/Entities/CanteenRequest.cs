@@ -16,8 +16,6 @@ public class CanteenRequest
     [ForeignKey(nameof(UserId))]
     public AppUser? User { get; set; }
 
-
-
     [Required]
     public DateTimeOffset CreatedAt { get; set; }
 
@@ -26,7 +24,7 @@ public class CanteenRequest
     public DateTimeOffset DeliveryDate { get; set; }
 
     [MaxLength(255)]
-    public string DeliveryLocation { get; set; }
+    public string DeliveryLocation { get; set; } = string.Empty;
 
     public decimal TotalAmount { get; set; }
     public decimal DeliveryAmount { get; set; }
