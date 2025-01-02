@@ -9,7 +9,7 @@ public interface IUserServices
 {
     Task<OneOf<ResponseErrorDto, UserOutputDto>> CreateUserAsync(UserIntputDto userIntputDto);
     Task<OneOf<ResponseErrorDto, UserOutputDto>> EditUser(UserIntputDto userIntputDto);
-    Task<OneOf<ResponseErrorDto, AuthResponseDtoOutput>> LoginAsync(string username, string userPassword);
+    Task<OneOf<ResponseErrorDto, AuthResponseDtoOutput>> LoginAsync(string userEmail, string userPassword);
     OneOf<ResponseErrorDto, List<AppUser>> ListUser();
     Task<OneOf<ResponseErrorDto, AppUser>> GetUserById(int userId);
     Task<OneOf<ResponseErrorDto, AppUser>> GetUserByEmail(string userEmail);

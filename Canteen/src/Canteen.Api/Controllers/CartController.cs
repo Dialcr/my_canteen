@@ -9,8 +9,6 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
 {
     [HttpGet]
     [Route("getCart")]
-    // [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
 
     public async Task<IActionResult> GetCart()
     {
@@ -31,8 +29,6 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
     }
     [HttpPatch]
     [Route("checkout")]
-    // [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(IEnumerable<RequestInputDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApplyDiscountToCart(int cardId)
     {
         var result = await cartServices.CheckoutAsync(cardId);
@@ -45,8 +41,6 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
 
     [HttpPatch]
     [Route("delete/cart")]
-    // [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteRequestIntoCart(int cartId, int requestId)
     {
         string? accessToken = HttpContext

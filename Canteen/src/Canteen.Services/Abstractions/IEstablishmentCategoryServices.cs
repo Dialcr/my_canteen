@@ -12,10 +12,4 @@ public interface IEstablishmentCategoryServices
     PagedResponse<EstablishmentCategoryOutputDto> GetAllEstablishmentsCategory(int page, int perPage, bool useInactive = false);
     Task<OneOf<ResponseErrorDto, Response<NoContent>>> ChangeStatusEstablishmentCategoryAsync(int id);
     Task<OneOf<ResponseErrorDto, Response<NoContent>>> UpdateEstablishmentCategoryAsync(UpdateEstablishmentCategoryDto establishmentCategoryDto);
-
-    // Task<OneOf<Dto.ResponseErrorDto, Dto.Establishment.EstablishmentOutputDto>> GetEstablishmentByIdAsync(int id);
-    // OneOf<ResponseErrorDto, PagedResponse<DeliveryTimeOupuDto>> GetDeliveryTimesEstablishment(int establishmentId, int page, int perPage);
-
-
-
 }

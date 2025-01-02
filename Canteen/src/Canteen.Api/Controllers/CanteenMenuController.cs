@@ -13,12 +13,8 @@ namespace Canteen.Controllers;
 public class CanteenMenuController(IMenuServices menuServices,
  ILogger<CanteenMenuController> _logger) : ControllerBase
 {
-    // public readonly string Name { get; set; }
-
 
     [HttpGet]
-    // [ProducesResponseType(typeof(MenuOutputDto), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("get")]
     public IActionResult GetMenuByEstablishmentDate(
         int establishmentId,
@@ -38,8 +34,6 @@ public class CanteenMenuController(IMenuServices menuServices,
         return Ok(response.ToMenuOutputDto());
     }
     [HttpPost]
-    [ProducesResponseType(typeof(Response<NoContentData>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Route("create")]
     [Authorize(Roles = nameof(RoleNames.Admin))]
     public IActionResult CreateMenu(

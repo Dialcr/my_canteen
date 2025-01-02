@@ -20,7 +20,6 @@ public class CanteenStablishmentController(
     [HttpGet]
     [Route("get/all")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(PagedResponse<EstablishmentOutputDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllSEstablishmentsAsync(int page, int perPage)
     {
         var establishments = establishmentService.GetAllEstablishments(page, perPage);
@@ -29,7 +28,6 @@ public class CanteenStablishmentController(
     [HttpGet]
     [Route("get/all/admin")]
     [Authorize(Roles = nameof(RoleNames.Admin))]
-    [ProducesResponseType(typeof(PagedResponse<EstablishmentOutputDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GeSEstablishmentsAsync(int page, int perPage)
     {
         var establishments = establishmentService.GetAllEstablishments(page, perPage, true);
@@ -39,8 +37,6 @@ public class CanteenStablishmentController(
     [HttpGet]
     [Route("{id}")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(EstablishmentOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetEstablishmentById(int id)
     {
         var stablish = await establishmentService.GetEstablishmentByIdAsync(id);
@@ -57,8 +53,6 @@ public class CanteenStablishmentController(
     }
     [HttpGet]
     [Route("delivery/times")]
-    [ProducesResponseType(typeof(PagedResponse<DeliveryTimeOupuDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetDeliveryTimesByEstablishment(int id, int page, int perPage)
     {
         var resutl = establishmentService.GetDeliveryTimesEstablishment(id, page, perPage);
@@ -75,8 +69,6 @@ public class CanteenStablishmentController(
     }
     [HttpPost]
     [Route("create")]
-    [ProducesResponseType(typeof(Response<NoContentData>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Authorize(Roles = nameof(RoleNames.Admin))]
     public async Task<IActionResult> CreateEstablishment(CreateEstablismentDto establishmen)
     {
@@ -110,8 +102,6 @@ public class CanteenStablishmentController(
         return Ok(response);
     }
     [HttpPatch]
-    [ProducesResponseType(typeof(Response<NoContentData>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
     [Authorize(Roles = nameof(RoleNames.Admin))]
     public async Task<IActionResult> DisableEstablishment(int id)
     {

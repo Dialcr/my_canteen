@@ -9,16 +9,14 @@ namespace Canteen.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
 public class EstablishmentCategoryController(
     IEstablishmentCategoryServices establishmentCategoryService,
-    ILogger<EstablishmentCategoryController> logger,
-    TokenUtil tokenUtil) : ControllerBase
+    ILogger<EstablishmentCategoryController> logger
+    ) : ControllerBase
 {
-
+    [HttpGet]
     [Route("get/all")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(PagedResponse<EstablishmentCategoryOutputDto>), StatusCodes.Status200OK)]
     public IActionResult GetAllSEstablishmentsAsync(int page, int perPage)
     {
         var establishments = establishmentCategoryService.GetAllEstablishmentsCategory(page, perPage);
@@ -27,7 +25,6 @@ public class EstablishmentCategoryController(
     [HttpGet]
     [Route("get/all/admin")]
     [Authorize(Roles = nameof(RoleNames.Admin))]
-    [ProducesResponseType(typeof(PagedResponse<EstablishmentCategoryOutputDto>), StatusCodes.Status200OK)]
     public IActionResult GeEstablishmentsCategoryAsync(int page, int perPage)
     {
         var establishments = establishmentCategoryService.GetAllEstablishmentsCategory(page, perPage, true);
@@ -52,6 +49,7 @@ public class EstablishmentCategoryController(
         return Ok(response);
     }
     [HttpPatch]
+    [Route("status/change")]
     [Authorize(Roles = nameof(RoleNames.Admin))]
     public async Task<IActionResult> DisableEstablishmentCategory(int id)
     {
@@ -68,6 +66,7 @@ public class EstablishmentCategoryController(
         return Ok(response);
     }
     [HttpPut]
+    [Route("update")]
     [Authorize(Roles = nameof(RoleNames.Admin))]
     public async Task<IActionResult> UpdateEstablishmentCategory(UpdateEstablishmentCategoryDto establishmentCategoryDto)
     {
