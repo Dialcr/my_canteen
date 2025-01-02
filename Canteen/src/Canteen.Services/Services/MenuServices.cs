@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess;
+using Canteen.DataAccess.Enums;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.Menu;
@@ -30,7 +31,8 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
             .ThenInclude(product => product!.ImagesUrl)
             .SingleOrDefault(menu =>
                 menu.EstablishmentId == idEstablishment &&
-                menu.Date.Date == date.Date);
+                menu.Date.Date == date.Date &&
+                menu.Establishment.StatusBase == StatusBase.Active);
     }
 
     private OneOf<ResponseErrorDto, Menu> CreateMenuNotFoundError(int idEstablishment, DateTimeOffset date)
@@ -46,7 +48,7 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
         {
             return Error("Menu already exists", "Menu already exists in that date ", 400);
         }
-        var establishment = context.Establishments.Find(newMenu.EstablishmentId);
+        var establishment = context.Establishments.FirstOrDefault(x => x.Id == newMenu.EstablishmentId && x.StatusBase == StatusBase.Active);
         if (establishment is null)
         {
             return Error("Establishment not found", "Establishment not found", 400);

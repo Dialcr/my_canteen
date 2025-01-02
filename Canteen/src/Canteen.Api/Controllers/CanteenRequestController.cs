@@ -3,9 +3,7 @@ using Canteen.DataAccess.Entities;
 using Canteen.DataAccess.Settings;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.CanteenRequest;
-using Canteen.Services.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Canteen.Controllers;
 

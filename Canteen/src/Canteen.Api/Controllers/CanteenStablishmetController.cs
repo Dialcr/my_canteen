@@ -1,5 +1,6 @@
 ﻿using Canteen.DataAccess.Entities;
 using Canteen.DataAccess.Enums;
+using Canteen.DataAccess.Settings;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Establishment;
 using Canteen.Services.Dto.Responses;
@@ -12,16 +13,26 @@ namespace Canteen.Controllers;
 [Route("api/[controller]")]
 public class CanteenStablishmentController(
     IEstablishmentService establishmentService,
-    ILogger<CanteenStablishmentController> logger) : ControllerBase
+    ILogger<CanteenStablishmentController> logger,
+    TokenUtil tokenUtil) : ControllerBase
 {
 
     [HttpGet]
     [Route("get/all")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResponse<EstablishmentOutputDto>), StatusCodes.Status200OK)]
-    public IActionResult GetAllSEstablishments(int page, int perPage)
+    public async Task<IActionResult> GetAllSEstablishmentsAsync(int page, int perPage)
     {
         var establishments = establishmentService.GetAllEstablishments(page, perPage);
+        return Ok(establishments);
+    }
+    [HttpGet]
+    [Route("get/all/admin")]
+    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [ProducesResponseType(typeof(PagedResponse<EstablishmentOutputDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GeSEstablishmentsAsync(int page, int perPage)
+    {
+        var establishments = establishmentService.GetAllEstablishments(page, perPage, true);
         return Ok(establishments);
     }
 
@@ -73,11 +84,46 @@ public class CanteenStablishmentController(
 
         if (result.TryPickT0(out var error, out var response))
         {
-            logger.LogError("Establishment not found {error}", error.Detail);
-            return NotFound();
+            logger.LogError(error.Detail);
+            return BadRequest(error);
         }
 
         logger.LogInformation("Establishment create correctly");
+
+        return Ok(response);
+    }
+    [HttpPut]
+    [Route("update")]
+    [Authorize(Roles = nameof(RoleNames.Admin))]
+    public async Task<IActionResult> UpdateEstablishment(UpdateEstablismentDto establishmen)
+    {
+        var result = await establishmentService.UpdateEstablishmentAsync(establishmen);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            logger.LogError(error.Detail);
+            return BadRequest(error);
+        }
+
+        logger.LogInformation("Establishment updated correctly");
+
+        return Ok(response);
+    }
+    [HttpPatch]
+    [ProducesResponseType(typeof(Response<NoContentData>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    [Authorize(Roles = nameof(RoleNames.Admin))]
+    public async Task<IActionResult> DisableEstablishment(int id)
+    {
+        var result = await establishmentService.ChangeStatusEstablishmentAsync(id);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            logger.LogError(error.Detail);
+            return BadRequest(error);
+        }
+
+        logger.LogInformation("Establishment change status  correctly");
 
         return Ok(response);
     }

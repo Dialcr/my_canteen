@@ -41,7 +41,7 @@ namespace Canteen.Testing.Controllers
                 .Returns(expectedEstablishments);
 
             // Act
-            var result = _controller.GetAllSEstablishments(page, perPage);
+            var result = _controller.GetAllSEstablishmentsAsync(page, perPage);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
