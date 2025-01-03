@@ -20,7 +20,15 @@ public class CanteenStablishmentController(
     [HttpGet]
     [Route("get/all")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAllSEstablishmentsAsync(int page, int perPage)
+    public async Task<IActionResult> GetAllSEstablishmentsAsync(int page, int perPage, int? category)
+    {
+        var establishments = establishmentService.GetAllEstablishments(page, perPage, category);
+        return Ok(establishments);
+    }
+    [HttpGet]
+    [Route("get/popular")]
+    [AllowAnonymous]
+    public IActionResult GetMustPopularEstablishments(int page, int perPage)
     {
         var establishments = establishmentService.GetAllEstablishments(page, perPage);
         return Ok(establishments);
@@ -30,7 +38,7 @@ public class CanteenStablishmentController(
     [Authorize(Roles = nameof(RoleNames.Admin))]
     public async Task<IActionResult> GeSEstablishmentsAsync(int page, int perPage)
     {
-        var establishments = establishmentService.GetAllEstablishments(page, perPage, true);
+        var establishments = establishmentService.GetAllEstablishments(page, perPage, useInactive: true);
         return Ok(establishments);
     }
 

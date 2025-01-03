@@ -16,11 +16,23 @@ namespace Canteen.Services.Services;
 public class EstablishmentService(EntitiesContext context) : CustomServiceBase(context), IEstablishmentService
 {
 
-    public PagedResponse<EstablishmentOutputDto> GetAllEstablishments(int page, int perPage, bool useInactive = false)
+    public PagedResponse<EstablishmentOutputDto> GetAllEstablishments(int page, int perPage, int? category = null, bool useInactive = false)
     {
-        var allEstablishment = (useInactive) ? context.Establishments.Select(x => x.ToEstablishmentOutputDto())
-        : context.Establishments.Where(x => x.StatusBase == StatusBase.Active).Select(x => x.ToEstablishmentOutputDto());
+        var allEstablishment = (useInactive)
+        ? context.Establishments.AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category))
+            .Select(x => x.ToEstablishmentOutputDto())
+        : context.Establishments.Where(x => x.StatusBase == StatusBase.Active)
+            .AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category))
+            .Select(x => x.ToEstablishmentOutputDto());
         return allEstablishment.ToPagedResult(page, perPage);
+    }
+    public PagedResponse<EstablishmentOutputDto> GetMustPopularEstablishments(int page, int perPage)
+    {
+        var allEstablishment = context.Establishments.Where(x => x.StatusBase == StatusBase.Active)
+        .Include(x => x.Orders)
+        .OrderByDescending(x => x.Orders.Count());
+
+        return allEstablishment.Select(x => x.ToEstablishmentOutputDto()).ToPagedResult(page, perPage);
     }
 
     public async Task<OneOf<ResponseErrorDto, EstablishmentOutputDto>> GetEstablishmentByIdAsync(int id)

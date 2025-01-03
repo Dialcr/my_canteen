@@ -53,11 +53,11 @@ namespace Canteen.Testing.Controllers
                     new() { Id = 2, Name = "Test Establishment 2" },
                 }, page, perPage, 1, 2);
 
-            _establishmentServiceMock.Setup(x => x.GetAllEstablishments(page, perPage, false))
+            _establishmentServiceMock.Setup(x => x.GetAllEstablishments(page, perPage, null, false))
                 .Returns(expectedEstablishments);
 
             // Act
-            var result = await _controller.GetAllSEstablishmentsAsync(page, perPage);
+            var result = await _controller.GetAllSEstablishmentsAsync(page, perPage, null);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
