@@ -10,13 +10,13 @@ public interface IUserServices
     Task<OneOf<ResponseErrorDto, UserOutputDto>> CreateUserAsync(UserIntputDto userIntputDto);
     Task<OneOf<ResponseErrorDto, UserOutputDto>> EditUser(UserIntputDto userIntputDto);
     Task<OneOf<ResponseErrorDto, AuthResponseDtoOutput>> LoginAsync(string userEmail, string userPassword);
-    OneOf<ResponseErrorDto, List<AppUser>> ListUser();
-    Task<OneOf<ResponseErrorDto, AppUser>> GetUserById(int userId);
-    Task<OneOf<ResponseErrorDto, AppUser>> GetUserByEmail(string userEmail);
-    Task<OneOf<ResponseErrorDto, AppUser>> GetUserByUserName(string userName);
-    Task<OneOf<ResponseErrorDto, AppUser>> GetUserByUserNameOrEmail(string userNameOrEmail);
-    Task<OneOf<ResponseErrorDto, AppUser>> EditUser(UserIntputDto userIntputDto, int userId);
-    Task<OneOf<ResponseErrorDto, AppUser>> ResetPassword(string userEmail, string newPassword, string token);
+    OneOf<ResponseErrorDto, IEnumerable<UserOutputDto>> ListUser();
+    Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserById(int userId);
+    Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserByEmail(string userEmail);
+    Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserByUserName(string userName);
+    Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserByUserNameOrEmail(string userNameOrEmail);
+    Task<OneOf<ResponseErrorDto, UserOutputDto>> EditUser(UserIntputDto userIntputDto, int userId);
+    Task<OneOf<ResponseErrorDto, UserOutputDto>> ResetPassword(string userEmail, string newPassword, string token);
     Task<bool> confirmEmail(string token, string userName);
     bool ConfirmEmailToken(string token, string userName);
 }

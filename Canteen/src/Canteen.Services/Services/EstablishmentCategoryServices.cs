@@ -62,11 +62,11 @@ public class EstablishmentCategoryServices(EntitiesContext context) : CustomServ
         return new Response<NoContent>();
     }
 
-    public PagedResponse<EstablishmentCategoryOutputDto> GetAllEstablishmentsCategory(int page, int perPage, bool useInactive = false)
+    public IEnumerable<EstablishmentCategoryOutputDto> GetAllEstablishmentsCategory(bool useInactive = false)
     {
         var allEstablishmentCategory = useInactive ? context.EstablishmentsCategory.Select(x => x.ToEstablishmentCategoryOutputDtos())
         : context.EstablishmentsCategory.Where(x => x.StatusBase == StatusBase.Active).Select(x => x.ToEstablishmentCategoryOutputDtos());
-        return allEstablishmentCategory.ToPagedResult(page, perPage);
+        return allEstablishmentCategory;
     }
     public async Task<OneOf<ResponseErrorDto, Response<NoContent>>> ChangeStatusEstablishmentCategoryAsync(int id)
     {

@@ -17,17 +17,17 @@ public class EstablishmentCategoryController(
     [HttpGet]
     [Route("get/all")]
     [AllowAnonymous]
-    public IActionResult GetAllSEstablishmentsAsync(int page, int perPage)
+    public IActionResult GetAllSEstablishmentsAsync()
     {
-        var establishments = establishmentCategoryService.GetAllEstablishmentsCategory(page, perPage);
+        var establishments = establishmentCategoryService.GetAllEstablishmentsCategory();
         return Ok(establishments);
     }
     [HttpGet]
     [Route("get/all/admin")]
     [Authorize(Roles = nameof(RoleNames.Admin))]
-    public IActionResult GeEstablishmentsCategoryAsync(int page, int perPage)
+    public IActionResult GeEstablishmentsCategoryAsync()
     {
-        var establishments = establishmentCategoryService.GetAllEstablishmentsCategory(page, perPage, true);
+        var establishments = establishmentCategoryService.GetAllEstablishmentsCategory(true);
         return Ok(establishments);
     }
 

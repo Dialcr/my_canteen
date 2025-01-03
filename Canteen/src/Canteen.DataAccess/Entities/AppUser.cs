@@ -5,6 +5,7 @@ namespace Canteen.DataAccess.Entities;
 
 public class AppUser : IdentityUser<int>
 {
+    public string Name { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public DateTime Created { get; set; }
     public DateTime? LastModified { get; set; }

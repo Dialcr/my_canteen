@@ -59,7 +59,7 @@ public class UserServicers(UserManager<AppUser> _userManager,
         var result = await _userManager!.CreateAsync(
             new AppUser()
             {
-                UserName = userIntputDto.Name,
+                Name = userIntputDto.Name,
                 Email = userIntputDto.Email,
                 EstablishmentId = userIntputDto.EstablishmentId,
                 LastName = userIntputDto.LastName,
@@ -105,7 +105,7 @@ public class UserServicers(UserManager<AppUser> _userManager,
         user.PhoneNumber = userIntputDto.PhoneNumber;
         user.Address = userIntputDto.Address;
         user.LastName = userIntputDto.LastName;
-        user.UserName = userIntputDto.Name;
+        user.Name = userIntputDto.Name;
 
         var userOutput = user.ToUserOutputDto();
         var role = await _userManager.GetRolesAsync(user);
@@ -154,49 +154,49 @@ public class UserServicers(UserManager<AppUser> _userManager,
         return Error("user not found", "user not found", 400);
     }
 
-    public OneOf<ResponseErrorDto, List<AppUser>> ListUser()
+    public OneOf<ResponseErrorDto, IEnumerable<UserOutputDto>> ListUser()
     {
         var response = _userManager.Users.ToList();
-        if (response.IsNullOrEmpty() || response.Count > 0)
+        if (!response.IsNullOrEmpty() || response.Count > 0)
         {
-            return response;
+            return response.Select(x => x.ToUserOutputDto()).ToList();
         }
         return Error("Not user registered", "Not user registered", 400);
     }
 
-    public async Task<OneOf<ResponseErrorDto, AppUser>> GetUserById(int userId)
+    public async Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserById(int userId)
     {
         var response = await _userManager
             .Users.Include(x => x.Establishment)
             .SingleOrDefaultAsync(x => x.Id == userId);
         if (response is not null)
         {
-            return response;
+            return response.ToUserOutputDto();
         }
         return Error("user not found", "user not found", 400);
     }
 
-    public async Task<OneOf<ResponseErrorDto, AppUser>> GetUserByEmail(string userEmail)
+    public async Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserByEmail(string userEmail)
     {
         var response = await _userManager.FindByEmailAsync(userEmail);
         if (response is not null)
         {
-            return response;
+            return response.ToUserOutputDto();
         }
         return Error("user not found", "user not found", 400);
     }
 
-    public async Task<OneOf<ResponseErrorDto, AppUser>> GetUserByUserName(string userName)
+    public async Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserByUserName(string userName)
     {
         var response = await _userManager.FindByNameAsync(userName);
         if (response is not null)
         {
-            return response;
+            return response.ToUserOutputDto();
         }
         return Error("user not found", "user not found", 400);
     }
 
-    public async Task<OneOf<ResponseErrorDto, AppUser>> GetUserByUserNameOrEmail(
+    public async Task<OneOf<ResponseErrorDto, UserOutputDto>> GetUserByUserNameOrEmail(
         string userNameOrEmail
     )
     {
@@ -205,27 +205,25 @@ public class UserServicers(UserManager<AppUser> _userManager,
             ?? await _userManager.FindByEmailAsync(userNameOrEmail);
         if (response is not null)
         {
-            return response;
+            return response.ToUserOutputDto();
         }
         return Error("user not found", "user not found", 400);
     }
 
-    public async Task<OneOf<ResponseErrorDto, AppUser>> EditUser(
+    public async Task<OneOf<ResponseErrorDto, UserOutputDto>> EditUser(
         UserIntputDto userIntputDto,
         int userId
     )
     {
-        var result = GetUserById(userId);
-
-        if (result.Result.TryPickT0(out var error, out var response))
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
         {
-            return error;
+            return Error("user not found", "user not found", 400);
         }
-
         try
         {
-            response.Email = userIntputDto.Email;
-            response.EstablishmentId = userIntputDto.EstablishmentId;
+            user.Email = userIntputDto.Email;
+            user.EstablishmentId = userIntputDto.EstablishmentId;
             await context.SaveChangesAsync();
         }
         catch (Exception e)
@@ -233,10 +231,10 @@ public class UserServicers(UserManager<AppUser> _userManager,
             Console.WriteLine(e);
             throw;
         }
-        return response;
+        return user.ToUserOutputDto();
     }
 
-    public async Task<OneOf<ResponseErrorDto, AppUser>> ResetPassword(
+    public async Task<OneOf<ResponseErrorDto, UserOutputDto>> ResetPassword(
         string userEmail,
         string newPassword,
         string token
@@ -251,7 +249,7 @@ public class UserServicers(UserManager<AppUser> _userManager,
                 return Error("Reset password failed", "Reset password failed", 400);
 
             }
-            return user;
+            return user.ToUserOutputDto();
         }
 
         return Error("user not found", "user not found", 400);

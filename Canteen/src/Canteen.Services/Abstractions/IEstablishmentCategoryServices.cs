@@ -9,7 +9,7 @@ namespace Canteen.Services.Abstractions;
 public interface IEstablishmentCategoryServices
 {
     Task<OneOf<ResponseErrorDto, Response<NoContent>>> CreateEstablishmentCategoryAsync(CreateEstablishmentCategoryDto establishmentCategoryDto);
-    PagedResponse<EstablishmentCategoryOutputDto> GetAllEstablishmentsCategory(int page, int perPage, bool useInactive = false);
+    IEnumerable<EstablishmentCategoryOutputDto> GetAllEstablishmentsCategory(bool useInactive = false);
     Task<OneOf<ResponseErrorDto, Response<NoContent>>> ChangeStatusEstablishmentCategoryAsync(int id);
     Task<OneOf<ResponseErrorDto, Response<NoContent>>> UpdateEstablishmentCategoryAsync(UpdateEstablishmentCategoryDto establishmentCategoryDto);
 }

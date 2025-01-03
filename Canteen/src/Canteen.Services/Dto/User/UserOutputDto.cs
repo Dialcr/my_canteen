@@ -21,7 +21,7 @@ public static class UserExtention
     {
         return new UserOutputDto()
         {
-            Name = user.UserName!,
+            Name = user.Name!,
             Email = user.Email!,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber,

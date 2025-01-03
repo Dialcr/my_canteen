@@ -47,18 +47,30 @@ public static class IQueryableExtensions
 
     public static PagedResponse<TResult> ToPagedResult<T, TResult>(this IEnumerable<T> source, int pageNumber, int pageSize, Func<T, TResult> projection)
     {
+        if (pageNumber == 0)
+            pageNumber = 1;
+        if (pageSize == 0)
+            pageSize = 10;
         var (items, totalCount, totalPages) = source.CorePageResult(pageNumber, pageSize);
         return new PagedResponse<TResult>(items.Select(f => projection(f)).ToList(), pageNumber, pageSize, totalPages, totalCount);
     }
 
     public static PagedResponse<T> ToPagedResult<T>(this IEnumerable<T> source, int pageNumber, int pageSize)
     {
+        if (pageNumber == 0)
+            pageNumber = 1;
+        if (pageSize == 0)
+            pageSize = 10;
         var (items, totalCount, totalPages) = source.CorePageResult(pageNumber, pageSize);
         return new PagedResponse<T>(items.ToList(), pageNumber, pageSize, totalPages, totalCount);
     }
 
     public static PagedResponse<T> ToPagedResult<T>(this IEnumerable<T> source, int? pageNumber, int? pageSize)
     {
+        if (pageNumber == 0)
+            pageNumber = 1;
+        if (pageSize == 0)
+            pageSize = 10;
         if (pageNumber is null || pageSize is null)
             throw new ArgumentNullException(pageNumber is null ? "PageNumber" : "PageSize", "PageNumber or PageSize can not be null");
 

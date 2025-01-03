@@ -118,6 +118,7 @@ public static class CreateData
                     new AppUser()
                     {
                         Email = superAdminEmail,
+                        Name = superAdminName,
                         UserName = superAdminName,
                         EstablishmentId = establismentFind.Id,
                     },
