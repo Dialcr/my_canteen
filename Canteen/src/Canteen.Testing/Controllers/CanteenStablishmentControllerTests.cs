@@ -1,11 +1,15 @@
 
 using Canteen.Controllers;
+using Canteen.DataAccess.Entities;
+using Canteen.DataAccess.Settings;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.Establishment;
 using Canteen.Services.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using OneOf;
 
@@ -15,17 +19,29 @@ namespace Canteen.Testing.Controllers
     {
         private readonly Mock<IEstablishmentService> _establishmentServiceMock;
         private readonly Mock<ILogger<CanteenStablishmentController>> _loggerMock;
+        private readonly TokenUtil _tokenUtil;
         private readonly CanteenStablishmentController _controller;
+        private readonly Mock<UserManager<AppUser>> _userManagerMock;
+        private readonly Mock<IOptions<JwtSettings>> _jwtSettingsMock;
 
         public CanteenStablishmentControllerTests()
         {
             _establishmentServiceMock = new Mock<IEstablishmentService>();
             _loggerMock = new Mock<ILogger<CanteenStablishmentController>>();
-            _controller = new CanteenStablishmentController(_establishmentServiceMock.Object, _loggerMock.Object);
-        }
 
+            // Setup UserManager mock
+            var userStore = new Mock<IUserStore<AppUser>>();
+            _userManagerMock = new Mock<UserManager<AppUser>>(userStore.Object, null, null, null, null, null, null, null, null);
+
+            // Setup JWT settings
+            _jwtSettingsMock = new Mock<IOptions<JwtSettings>>();
+            _jwtSettingsMock.Setup(x => x.Value).Returns(new JwtSettings());
+
+            _tokenUtil = new TokenUtil(_userManagerMock.Object, _jwtSettingsMock.Object);
+            _controller = new CanteenStablishmentController(_establishmentServiceMock.Object, _loggerMock.Object, _tokenUtil);
+        }
         [Fact]
-        public void GetAllSEstablishments_ReturnsOkResult_WithEstablishments()
+        public async Task GetAllSEstablishments_ReturnsOkResult_WithEstablishments()
         {
             // Arrange
             int page = 1;
@@ -37,18 +53,17 @@ namespace Canteen.Testing.Controllers
                     new() { Id = 2, Name = "Test Establishment 2" },
                 }, page, perPage, 1, 2);
 
-            _establishmentServiceMock.Setup(x => x.GetAllEstablishments(page, perPage))
+            _establishmentServiceMock.Setup(x => x.GetAllEstablishments(page, perPage, false))
                 .Returns(expectedEstablishments);
 
             // Act
-            var result = _controller.GetAllSEstablishmentsAsync(page, perPage);
+            var result = await _controller.GetAllSEstablishmentsAsync(page, perPage);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var returnedEstablishments = Assert.IsType<PagedResponse<EstablishmentOutputDto>>(okResult.Value);
             Assert.Equal(expectedEstablishments, returnedEstablishments);
         }
-
         [Fact]
         public async Task GetEstablishmentById_ReturnsOkResult_WhenEstablishmentExists()
         {
