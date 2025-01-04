@@ -35,7 +35,7 @@ public class CanteenMenuController(IMenuServices menuServices,
     }
     [HttpPost]
     [Route("create")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public IActionResult CreateMenu(
         CreateMenuInputDto menu)
     {

@@ -75,13 +75,13 @@ public class CartServices(EntitiesContext context, ICanteenOrderServices orderSe
         }
 
         var totalDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
-                                                         && x.DiscountType.Equals(DiscountType.TotalAmount)
+                                                         && x.DiscountType == DiscountType.TotalAmount
                                                          && cart.PrductsTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
 
         var delivaryDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
-                                                            && x.DiscountType.Equals(DiscountType.DeliveryAmount)
+                                                            && x.DiscountType == DiscountType.DeliveryAmount
                                                             && cart.DeliveryTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();

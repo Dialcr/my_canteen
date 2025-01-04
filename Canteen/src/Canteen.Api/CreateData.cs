@@ -126,7 +126,7 @@ public static class CreateData
                 );
                 var user = await userManager.FindByNameAsync(superAdminName);
 
-                await userManager.AddToRoleAsync(user, RoleNames.Admin.ToUpper());
+                await userManager.AddToRoleAsync(user, RoleNames.ADMIN.ToUpper());
 
             }
         }

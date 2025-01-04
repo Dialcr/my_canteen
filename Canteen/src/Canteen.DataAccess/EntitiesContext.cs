@@ -59,14 +59,14 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
                     new IdentityRole<int>
                     {
                         Id = 1,
-                        Name = RoleNames.Admin,
-                        NormalizedName = RoleNames.Admin.Trim().ToUpper().Replace(" ", ""),
+                        Name = RoleNames.ADMIN,
+                        NormalizedName = RoleNames.ADMIN.Trim().ToUpper().Replace(" ", ""),
                     },
                     new IdentityRole<int>
                     {
                         Id = 2,
-                        Name = RoleNames.Client,
-                        NormalizedName = RoleNames.Client.Trim().ToUpper().Replace(" ", ""),
+                        Name = RoleNames.CLIENT,
+                        NormalizedName = RoleNames.CLIENT.Trim().ToUpper().Replace(" ", ""),
                     }
                 }
             );

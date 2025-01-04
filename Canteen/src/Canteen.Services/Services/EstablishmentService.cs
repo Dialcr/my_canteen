@@ -19,25 +19,26 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
     public PagedResponse<EstablishmentOutputDto> GetAllEstablishments(int page, int perPage, int? category = null, bool useInactive = false)
     {
         var allEstablishment = (useInactive)
-        ? context.Establishments.AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category))
-            .Select(x => x.ToEstablishmentOutputDto())
-        : context.Establishments.Where(x => x.StatusBase == StatusBase.Active)
-            .AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category))
-            .Select(x => x.ToEstablishmentOutputDto());
-        return allEstablishment.ToPagedResult(page, perPage);
+        ? context.Establishments.Include(x => x.EstablishmentCategories).AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category))
+        : context.Establishments.Include(x => x.EstablishmentCategories).Where(x => x.StatusBase == StatusBase.Active)
+            .AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category)).ToList();
+
+        return allEstablishment.Select(x => EstablishmentExtention.ToEstablishmentOutputDtos(x)).ToPagedResult(page, perPage);
     }
     public PagedResponse<EstablishmentOutputDto> GetMustPopularEstablishments(int page, int perPage)
     {
         var allEstablishment = context.Establishments.Where(x => x.StatusBase == StatusBase.Active)
         .Include(x => x.Orders)
+        .Include(x => x.EstablishmentCategories)
         .OrderByDescending(x => x.Orders.Count());
 
-        return allEstablishment.Select(x => x.ToEstablishmentOutputDto()).ToPagedResult(page, perPage);
+        return allEstablishment.Select(x => EstablishmentExtention.ToEstablishmentOutputDtos(x)).ToPagedResult(page, perPage);
     }
 
     public async Task<OneOf<ResponseErrorDto, EstablishmentOutputDto>> GetEstablishmentByIdAsync(int id)
     {
         var establish = await context.Establishments
+            .Include(x => x.EstablishmentCategories)
             .Where(x => x.Id == id && x.StatusBase == StatusBase.Active)
             .FirstOrDefaultAsync();
 
@@ -53,6 +54,10 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
 
     public async Task<OneOf<ResponseErrorDto, Response<NoContent>>> CreateEstablishmentAsync(CreateEstablismentDto establishmentDto)
     {
+        if (!establishmentDto.EstablishmentCategory.Any())
+        {
+            return Error("Establishment must have some category", "Establishment must have some category", 400);
+        }
         var existingEstablishment = context.Establishments.FirstOrDefault(x => x.Name == establishmentDto.Name && x.StatusBase == StatusBase.Active);
         if (existingEstablishment is not null)
         {
@@ -66,7 +71,7 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
         {
             return Error("Some Category has not found", "Some Category has not found", 400);
         }
-        if (!establishmentDto.DeliveryTimes.Any(x => x.StartTime > x.EndTime || !Enum.TryParse(x.DeliveryTimeType, out DeliveryTimeType _)))
+        if (establishmentDto.DeliveryTimes.Any(x => x.StartTime > x.EndTime || !Enum.TryParse(x.DeliveryTimeType, out DeliveryTimeType _)))
         {
             return Error("Some errors into delivery times ",
                             "Some errors into delivery times ",

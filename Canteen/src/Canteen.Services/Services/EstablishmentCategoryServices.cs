@@ -19,8 +19,9 @@ public class EstablishmentCategoryServices(EntitiesContext context) : CustomServ
         {
             return Error("Establishment category name can't be null or empty", "Establishment category name can't be null or empty", 400);
         }
-        var existingEstablishmentCategory = await context.EstablishmentsCategory.FirstOrDefaultAsync(x => x.Name.Equals(establishmentCategoryDto.Name,
-        StringComparison.OrdinalIgnoreCase) && x.StatusBase == StatusBase.Active);
+        var existingEstablishmentCategory = context.EstablishmentsCategory.Where(x => x.StatusBase == StatusBase.Active).ToList()
+            .FirstOrDefault(x => x.Name.Equals(establishmentCategoryDto.Name,
+                StringComparison.OrdinalIgnoreCase));
         if (existingEstablishmentCategory is not null)
         {
             return Error("Establishment category already exists", "Establishment category already exists", 400);
@@ -40,8 +41,9 @@ public class EstablishmentCategoryServices(EntitiesContext context) : CustomServ
         {
             return Error("Establishment category name can't be null or empty", "Establishment category name can't be null or empty", 400);
         }
-        var existingEstablishmentCategory = await context.EstablishmentsCategory.FirstOrDefaultAsync(x => x.Name.Equals(establishmentCategoryDto.Name,
-        StringComparison.OrdinalIgnoreCase) && x.Id != establishmentCategoryDto.Id);
+        var existingEstablishmentCategory = context.EstablishmentsCategory.Where(x => x.Id != establishmentCategoryDto.Id).ToList()
+            .FirstOrDefault(x => x.Name.Equals(establishmentCategoryDto.Name,
+                StringComparison.OrdinalIgnoreCase));
         if (existingEstablishmentCategory is not null)
         {
             return Error("Establishment category with the same name already exists", "Establishment category with the same name already exists", 400);

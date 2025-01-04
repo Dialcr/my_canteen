@@ -28,7 +28,7 @@ public class TokenUtil
         var userRoles = await _userManager.GetRolesAsync(user) ?? new List<string>();
 
         if (userRoles.ToList().Count == 0)
-            role = RoleNames.Client;
+            role = RoleNames.CLIENT;
         else
             role = userRoles.ToList().First().ToUpper();
 
@@ -39,7 +39,7 @@ public class TokenUtil
             new Claim(ClaimTypes.Sid, $"{user.Id}"),
             new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
             new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-            new Claim(ClaimTypes.Role, role ?? RoleNames.Client),
+            new Claim(ClaimTypes.Role, role ?? RoleNames.CLIENT),
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));

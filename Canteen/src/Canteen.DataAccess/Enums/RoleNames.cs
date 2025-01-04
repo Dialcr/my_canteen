@@ -2,7 +2,7 @@ namespace Canteen.DataAccess.Enums;
 
 public static class RoleNames
 {
-    public static string Admin = "ADMIN";
+    public static string ADMIN = "ADMIN";
 
-    public static string Client = "CLIENT";
+    public static string CLIENT = "CLIENT";
 }

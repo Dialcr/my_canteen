@@ -24,7 +24,7 @@ public class RequestServices(
             .Include(r => r.RequestProducts)
             .SingleOrDefaultAsync(r =>
                 r.Id == requestId &&
-                r.Status.Equals(RequestStatus.Planned));
+                r.Status == RequestStatus.Planned);
 
         if (request is null)
         {
@@ -176,7 +176,7 @@ public class RequestServices(
             .ThenInclude(x => x.Product)
             .Where(x =>
                 x.UserId == userId &&
-                !x.Status.Equals(RequestStatus.Cancelled))
+                x.Status != RequestStatus.Cancelled)
             .ToListAsync();
 
         if (requests.Count > 0)
@@ -194,8 +194,8 @@ public class RequestServices(
         var requests = await context.Requests
             .Where(x =>
                 x.UserId == userId &&
-                (x.Status.Equals(RequestStatus.Cancelled) ||
-                 x.Status.Equals(RequestStatus.Delivered)))
+                (x.Status == RequestStatus.Cancelled ||
+                 x.Status == RequestStatus.Delivered))
             .ToListAsync();
 
         if (requests.Count > 0)
@@ -221,7 +221,7 @@ public class RequestServices(
             .Include(x => x.Order)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
-                x.Status.Equals(RequestStatus.Planned));
+                x.Status == RequestStatus.Planned);
 
         if (request is null)
         {
@@ -294,7 +294,7 @@ public class RequestServices(
         var request = await context.Requests
             .SingleOrDefaultAsync(x =>
                 x.Id == requestId &&
-                x.Status.Equals(RequestStatus.Planned));
+                x.Status == RequestStatus.Planned);
 
         if (request is null)
         {

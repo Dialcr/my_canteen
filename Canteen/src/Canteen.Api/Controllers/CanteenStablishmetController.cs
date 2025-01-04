@@ -35,7 +35,7 @@ public class CanteenStablishmentController(
     }
     [HttpGet]
     [Route("get/all/admin")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public async Task<IActionResult> GeSEstablishmentsAsync(int page, int perPage)
     {
         var establishments = establishmentService.GetAllEstablishments(page, perPage, useInactive: true);
@@ -77,10 +77,10 @@ public class CanteenStablishmentController(
     }
     [HttpPost]
     [Route("create")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
-    public async Task<IActionResult> CreateEstablishment(CreateEstablismentDto establishmen)
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> CreateEstablishment([FromBody] CreateEstablismentDto establishment)
     {
-        var result = await establishmentService.CreateEstablishmentAsync(establishmen);
+        var result = await establishmentService.CreateEstablishmentAsync(establishment);
 
         if (result.TryPickT0(out var error, out var response))
         {
@@ -94,7 +94,7 @@ public class CanteenStablishmentController(
     }
     [HttpPut]
     [Route("update")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public async Task<IActionResult> UpdateEstablishment(UpdateEstablismentDto establishmen)
     {
         var result = await establishmentService.UpdateEstablishmentAsync(establishmen);
@@ -110,7 +110,7 @@ public class CanteenStablishmentController(
         return Ok(response);
     }
     [HttpPatch]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> DisableEstablishment(int id)
     {
         var result = await establishmentService.ChangeStatusEstablishmentAsync(id);

@@ -79,10 +79,10 @@ public class UserServicers(UserManager<AppUser> _userManager,
         var user = await _userManager.FindByNameAsync(userIntputDto.Name);
         if (userIntputDto.EstablishmentId is not null)
         {
-            await _userManager.AddToRoleAsync(user, RoleNames.Admin.ToUpper());
+            await _userManager.AddToRoleAsync(user, RoleNames.ADMIN.ToUpper());
         }
 
-        await _userManager.AddToRoleAsync(user, RoleNames.Client.ToUpper());
+        await _userManager.AddToRoleAsync(user, RoleNames.CLIENT.ToUpper());
 
         // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user!);
         var response = user!.ToUserOutputDto();

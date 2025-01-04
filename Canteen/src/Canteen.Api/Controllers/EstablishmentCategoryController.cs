@@ -17,14 +17,14 @@ public class EstablishmentCategoryController(
     [HttpGet]
     [Route("get/all")]
     [AllowAnonymous]
-    public IActionResult GetAllSEstablishmentsAsync()
+    public IActionResult GetAllSEstablishmentsCategoryAsync()
     {
         var establishments = establishmentCategoryService.GetAllEstablishmentsCategory();
         return Ok(establishments);
     }
     [HttpGet]
     [Route("get/all/admin")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public IActionResult GeEstablishmentsCategoryAsync()
     {
         var establishments = establishmentCategoryService.GetAllEstablishmentsCategory(true);
@@ -33,7 +33,7 @@ public class EstablishmentCategoryController(
 
     [HttpPost]
     [Route("create")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public async Task<IActionResult> CreateEstablishmentCategory(CreateEstablishmentCategoryDto establishmentCategory)
     {
         var result = await establishmentCategoryService.CreateEstablishmentCategoryAsync(establishmentCategory);
@@ -50,7 +50,7 @@ public class EstablishmentCategoryController(
     }
     [HttpPatch]
     [Route("status/change")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public async Task<IActionResult> DisableEstablishmentCategory(int id)
     {
         var result = await establishmentCategoryService.ChangeStatusEstablishmentCategoryAsync(id);
@@ -67,7 +67,7 @@ public class EstablishmentCategoryController(
     }
     [HttpPut]
     [Route("update")]
-    [Authorize(Roles = nameof(RoleNames.Admin))]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public async Task<IActionResult> UpdateEstablishmentCategory(UpdateEstablishmentCategoryDto establishmentCategoryDto)
     {
         var result = await establishmentCategoryService.UpdateEstablishmentCategoryAsync(establishmentCategoryDto);
