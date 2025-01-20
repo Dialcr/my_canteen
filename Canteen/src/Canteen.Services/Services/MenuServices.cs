@@ -20,6 +20,18 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
 
         return menu;
     }
+    public OneOf<ResponseErrorDto, IEnumerable<Menu>> ListMenuByEstablishment(int idEstablishment)
+    {
+        var menus = context.Menus
+            .Include(menu => menu.MenuProducts)
+                .ThenInclude(menuProduct => menuProduct.Product)
+                    .ThenInclude(product => product!.DietaryRestrictions)
+            .Include(menu => menu.MenuProducts)
+                .ThenInclude(menuProduct => menuProduct.Product)
+                    .ThenInclude(product => product!.ImagesUrl)
+            .Where(x => x.EstablishmentId == idEstablishment && x.Date.Date >= DateTime.Now.Date);
+        return menus.ToList();
+    }
     private Menu? FindMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date)
     {
         return context.Menus

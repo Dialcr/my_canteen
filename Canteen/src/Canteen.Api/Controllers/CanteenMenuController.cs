@@ -57,5 +57,20 @@ public class CanteenMenuController(IMenuServices menuServices,
     {
         return Ok();
     }
+    [HttpGet]
+    [Route("list/menu/{establishmentId}")]
+    [AllowAnonymous]
+    public IActionResult GetMenus(int establishmentId)
+    {
+        _logger.LogInformation("Listing menus by establishments");
+        var result = menuServices.ListMenuByEstablishment(establishmentId);
+        if (result.TryPickT0(out var error, out var response))
+        {
+            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+        _logger.LogInformation("Finish listing menus");
+        return Ok(response.Select(x => x.ToMenuOutputDto()));
+    }
 
 }
