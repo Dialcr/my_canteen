@@ -59,4 +59,11 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
         return Ok(response);
     }
 
+    [HttpGet]
+    [Route("test/cicd")]
+    public async Task<IActionResult> TestCiCd()
+    {
+        return Ok("Yes they did");
+    }
+
 }
