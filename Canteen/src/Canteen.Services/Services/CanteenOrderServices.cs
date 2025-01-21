@@ -7,7 +7,7 @@ using Canteen.Services.Dto.Order;
 
 namespace Canteen.Services.Services;
 
-public class CanteenOrderServices(EntitiesContext context, MenuServices menuServices) : CustomServiceBase(context), ICanteenOrderServices
+public class CanteenOrderServices(EntitiesContext context, IMenuServices menuServices) : CustomServiceBase(context), ICanteenOrderServices
 {
     public async Task<OneOf<ResponseErrorDto, Order>> ApplyDiscountToOrderAsync(
         int orderId)
@@ -38,7 +38,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
     {
         return context.Discounts
             .Where(x => x.Establishment!.Id == establishmentId
-                        && x.DiscountType.Equals(discountType)
+                        && x.DiscountType == discountType
                         && amount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
@@ -333,7 +333,7 @@ public class CanteenOrderServices(EntitiesContext context, MenuServices menuServ
             .Include(x => x.Order)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
-                x.Status.Equals(RequestStatus.Planned)
+                x.Status == RequestStatus.Planned
                 && (x.OrderId != null));
 
         if (request is not null)

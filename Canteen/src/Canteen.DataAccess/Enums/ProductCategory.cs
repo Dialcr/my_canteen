@@ -2,7 +2,18 @@
 
 public enum ProductCategory
 {
-    Entrante = 1 ,
-    PatoFuerte,
-    Postre
+    /// <summary>
+    /// Entrada o primer plato
+    /// </summary>
+    Starter = 1,
+
+    /// <summary>
+    /// Plato principal o segundo plato
+    /// </summary>
+    MainCourse,
+
+    /// <summary>
+    /// Postre
+    /// </summary>
+    Dessert
 }

@@ -13,5 +13,5 @@ public class Menu
         [ForeignKey(nameof(EstablishmentId))]
         public Establishment? Establishment { get; set; }
 
-        public ICollection<MenuProduct>? MenuProducts { get; set; }
+        public ICollection<MenuProduct>? MenuProducts { get; set; } = [];
 }

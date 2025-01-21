@@ -11,7 +11,7 @@ COPY ["src/Canteen.Services/Canteen.Services.csproj", "src/Canteen.Services/"]
 
 COPY . .
 RUN dotnet restore "src/Canteen.Api/Canteen.Api.csproj"
-RUN dotnet build "src/Canteen.Api/Canteen.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+# RUN dotnet build "src/Canteen.Api/Canteen.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 # WORKDIR /src/Canteen.Api/
 # RUN dotnet build "Canteen.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

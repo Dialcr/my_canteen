@@ -1,10 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canteen.Api", "src\Canteen.Api\Canteen.Api.csproj", "{842D7A42-5A90-47F3-9200-D99C7F7012C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canteen.DataAccess", "src\Canteen.DataAccess\Canteen.DataAccess.csproj", "{2A99BD35-1675-4EF6-9894-0F212251815B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canteen.Services", "src\Canteen.Services\Canteen.Services.csproj", "{8E2CFB8B-76AA-4F24-A75D-E1860DD9A564}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C9366DED-EA4D-498A-8FFC-9640103CC5B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canteen.Testing", "src\Canteen.Testing\Canteen.Testing.csproj", "{93504527-BFA2-419F-9361-DB74820B21A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +29,12 @@ Global
 		{8E2CFB8B-76AA-4F24-A75D-E1860DD9A564}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E2CFB8B-76AA-4F24-A75D-E1860DD9A564}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E2CFB8B-76AA-4F24-A75D-E1860DD9A564}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93504527-BFA2-419F-9361-DB74820B21A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93504527-BFA2-419F-9361-DB74820B21A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93504527-BFA2-419F-9361-DB74820B21A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93504527-BFA2-419F-9361-DB74820B21A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{93504527-BFA2-419F-9361-DB74820B21A3} = {C9366DED-EA4D-498A-8FFC-9640103CC5B9}
 	EndGlobalSection
 EndGlobal

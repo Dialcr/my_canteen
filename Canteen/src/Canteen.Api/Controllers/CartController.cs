@@ -1,21 +1,25 @@
-﻿using Canteen.DataAccess.Entities;
-using Canteen.Services.Dto.CanteenRequest;
-using Canteen.Services.Dto.Order;
-using Canteen.Services.Services;
+﻿using Canteen.DataAccess.Settings;
+using Canteen.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class CartController(CartServices cartServices) : ControllerBase
+public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : ControllerBase
 {
     [HttpGet]
-    [Route("getCart/{userId}")]
-    [ProducesResponseType(typeof(CartOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
+    [Route("getCart")]
 
-    public async Task<IActionResult> GetCart(int userId)
+    public async Task<IActionResult> GetCart()
     {
+        string? accessToken = HttpContext
+            .Request.Headers["Authorization"]
+            .FirstOrDefault()
+            ?.Split(" ")
+            .Last();
+        accessToken = accessToken!.Replace("Bearer", "");
+        var userId = tokenUtil.GetUserIdFromToken(accessToken);
+
         var result = await cartServices.GetCartByUserIdAsync(userId);
         if (result.TryPickT0(out var error, out var response))
         {
@@ -25,8 +29,6 @@ public class CartController(CartServices cartServices) : ControllerBase
     }
     [HttpPatch]
     [Route("checkout")]
-    [ProducesResponseType(typeof(OrderOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(IEnumerable<RequestInputDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApplyDiscountToCart(int cardId)
     {
         var result = await cartServices.CheckoutAsync(cardId);
@@ -35,14 +37,20 @@ public class CartController(CartServices cartServices) : ControllerBase
             return BadRequest(list);
         }
         return Ok(response);
-    } 
-    
+    }
+
     [HttpPatch]
-    [Route("DeleteRequestIntoCart")]
-    [ProducesResponseType(typeof(RequestOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DeleteRequestIntoCart(int userId, int cartId, int requestId)
+    [Route("delete/cart")]
+    public async Task<IActionResult> DeleteRequestIntoCart(int cartId, int requestId)
     {
+        string? accessToken = HttpContext
+            .Request.Headers["Authorization"]
+            .FirstOrDefault()
+            ?.Split(" ")
+            .Last();
+        accessToken = accessToken!.Replace("Bearer", "");
+        var userId = tokenUtil.GetUserIdFromToken(accessToken);
+
         var result = await cartServices.DeleteRequestIntoCartAsync(userId, cartId, requestId);
         if (result.TryPickT0(out var error, out var response))
         {
@@ -50,5 +58,5 @@ public class CartController(CartServices cartServices) : ControllerBase
         }
         return Ok(response);
     }
-    
+
 }

@@ -3,9 +3,9 @@
 public class DietaryRestriction
 {
     [Key] public int Id { get; set; }
-    [Required] 
+    [Required]
     [MaxLength(100)]
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
-    public ICollection<Product>? Products { get; set; }
+    public ICollection<Product> Products { get; set; } = [];
 }

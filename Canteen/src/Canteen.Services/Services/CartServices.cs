@@ -7,7 +7,7 @@ using Canteen.Services.Dto.Order;
 
 namespace Canteen.Services.Services;
 
-public class CartServices(EntitiesContext context, CanteenOrderServices orderServices, RequestServices requestServices) : CustomServiceBase(context), ICartServices
+public class CartServices(EntitiesContext context, ICanteenOrderServices orderServices, IRequestServices requestServices) : CustomServiceBase(context), ICartServices
 {
     public async Task<OneOf<IEnumerable<RequestProductOutputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
     {
@@ -75,13 +75,13 @@ public class CartServices(EntitiesContext context, CanteenOrderServices orderSer
         }
 
         var totalDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
-                                                         && x.DiscountType.Equals(DiscountType.TotalAmount)
+                                                         && x.DiscountType == DiscountType.TotalAmount
                                                          && cart.PrductsTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();
 
         var delivaryDiscount = context.Discounts.Where(x => x.Establishment!.Id == cart.EstablishmentId
-                                                            && x.DiscountType.Equals(DiscountType.DeliveryAmount)
+                                                            && x.DiscountType == DiscountType.DeliveryAmount
                                                             && cart.DeliveryTotalAmount <= x.TotalNecesity)
             .OrderByDescending(x => x.TotalNecesity)
             .FirstOrDefault();

@@ -1,22 +1,21 @@
-﻿using Canteen.DataAccess.Entities;
-using Canteen.DataAccess.Enums;
+﻿using AvangTur.Application.Extensions;
+using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.Mapper;
-using Canteen.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canteen.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CanteenProductController(ProductServices productServices,
+public class CanteenProductController(IProductServices productServices,
     ILogger<CanteenProductController> logger) : ControllerBase
 {
 
     [HttpGet]
-    [ProducesResponseType(typeof(ProductOutputDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("GetCanteenProductById")]
-    public IActionResult GetCanteenProductById(int productId)   
+    [Route("get/{productId}")]
+    [AllowAnonymous]
+    public IActionResult GetCanteenProductById(int productId)
     {
         var result = productServices.GetCantneeProductById(productId);
 
@@ -33,10 +32,9 @@ public class CanteenProductController(ProductServices productServices,
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getCantneeProductsByCategory")]
-    public IActionResult GetCantneeProductsByCategory(ProductCategory categoryProduct)
+    [Route("get/category")]
+    [AllowAnonymous]
+    public IActionResult GetCantneeProductsByCategory(string categoryProduct, int page, int perPage)
     {
         var result = productServices.GetCantneeProductsByCategoryAsync(categoryProduct);
 
@@ -49,18 +47,17 @@ public class CanteenProductController(ProductServices productServices,
 
         logger.LogInformation($"All CantneeProduct of category  found correctly {categoryProduct}");
 
-        return Ok(response);
+        return Ok(response.ToPagedResult(page, perPage));
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ICollection<ProductOutputDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorDto), StatusCodes.Status400BadRequest)]
-    [Route("getCantneeProductsByDietaryRestrictions")]
-    public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction)
+    [Route("get/dietary/restriction")]
+    [AllowAnonymous]
+    public IActionResult GetCantneeProductsByDietaryRestrictions(string dietaryRestriction, int page, int perPage)
     {
         var result = productServices.GetCantneeProductsByDietaryRestrictions(dietaryRestriction);
 
-        
+
         if (result.TryPickT0(out var error, out var response))
         {
             logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
@@ -69,7 +66,7 @@ public class CanteenProductController(ProductServices productServices,
         }
         logger.LogInformation($"All CantneeProduct of dietaryRestriction {dietaryRestriction}  found correctly");
 
-        return Ok(result);
+        return Ok(response.ToPagedResult(page, perPage));
     }
-    
+
 }

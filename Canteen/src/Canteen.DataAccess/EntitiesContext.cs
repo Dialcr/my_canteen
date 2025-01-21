@@ -1,23 +1,27 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.DataAccess.Enums;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Canteen.DataAccess;
 
-public class EntitiesContext : DbContext, IDataProtectionKeyContext
+public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int> //, IDataProtectionKeyContext
 {
     public EntitiesContext(DbContextOptions<EntitiesContext> options) : base(options)
     {
-        
+
     }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<Establishment> Establishments { get; set; }
+    public DbSet<EstablishmentCategory> EstablishmentsCategory { get; set; }
     public DbSet<CanteenRequest> Requests { get; set; }
     public DbSet<RequestProduct> RequestProducts { get; set; }
     public DbSet<Menu> Menus { get; set; }
     public DbSet<MenuProduct> MenuProducts { get; set; }
-    
+
     public DbSet<DataProtectionKey> DataProtectionKeys { get; }
     public DbSet<ProductImageUrl> ProductImageUrls { get; set; }
     public DbSet<Discount> Discounts { get; set; }
@@ -26,10 +30,11 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
 
     public DbSet<CanteenCart> Carts { get; set; }
     public DbSet<DeliveryTime> DeliveryTimes { get; set; }
-    
-    
+    public DbSet<AppUser> Users { get; set; }
+    public DbSet<IdentityRole> IdentityRole { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         ConfigureOrderEntity(modelBuilder);
         ConfigureEstablishmentEntity(modelBuilder);
         ConfigureMenuEntity(modelBuilder);
@@ -37,6 +42,34 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         ConfigureProductEntity(modelBuilder);
         ConfigureDiscountEntity(modelBuilder);
         ConfigureCanteenCartEntity(modelBuilder);
+        ConfigureOrderIdentity(modelBuilder);
+
+    }
+
+    private void ConfigureOrderIdentity(ModelBuilder modelBuilder)
+    {
+        // modelBuilder.Entity<IdentityUserLogin<int>>()
+        //     .HasKey(l => new { l.LoginProvider, l.ProviderKey, l.UserId });
+
+        modelBuilder
+            .Entity<IdentityRole<int>>()
+            .HasData(
+                new IdentityRole<int>[]
+                {
+                    new IdentityRole<int>
+                    {
+                        Id = 1,
+                        Name = RoleNames.ADMIN,
+                        NormalizedName = RoleNames.ADMIN.Trim().ToUpper().Replace(" ", ""),
+                    },
+                    new IdentityRole<int>
+                    {
+                        Id = 2,
+                        Name = RoleNames.CLIENT,
+                        NormalizedName = RoleNames.CLIENT.Trim().ToUpper().Replace(" ", ""),
+                    }
+                }
+            );
     }
 
     private void ConfigureOrderEntity(ModelBuilder modelBuilder)
@@ -55,6 +88,14 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         modelBuilder.Entity<Establishment>()
             .HasMany(x => x.Products)
             .WithOne(x => x.Establishment);
+
+        modelBuilder.Entity<Establishment>()
+        .HasMany(x => x.DeliveryTimes)
+        .WithOne(x => x.Establishment);
+
+        modelBuilder.Entity<Establishment>()
+        .HasMany(x => x.EstablishmentCategories)
+        .WithMany(x => x.Establishments);
     }
 
     private void ConfigureMenuEntity(ModelBuilder modelBuilder)
@@ -62,7 +103,7 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
         modelBuilder.Entity<Menu>()
             .HasMany(x => x.MenuProducts)
             .WithOne(x => x.Menu);
-    
+
         modelBuilder.Entity<Menu>()
             .HasOne(x => x.Establishment)
             .WithMany(x => x.Menus);
@@ -95,6 +136,12 @@ public class EntitiesContext : DbContext, IDataProtectionKeyContext
     {
         modelBuilder.Entity<CanteenCart>()
             .HasMany(x => x.Requests);
+
+        modelBuilder.Entity<CanteenCart>()
+        .HasOne(x => x.Establishment);
+
+        modelBuilder.Entity<CanteenCart>()
+        .HasOne(x => x.User);
     }
 
 }

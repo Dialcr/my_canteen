@@ -16,7 +16,11 @@ public class CanteenCart
     public decimal DeliveryTotalAmount { get; set; }
     public decimal DeliveryTotalDiscount { get; set; }
 
-    public ICollection<CanteenRequest>? Requests { get; set; }
-    
+    public ICollection<CanteenRequest> Requests { get; set; } = [];
+
     public int UserId { get; set; }
+    [ForeignKey(nameof(UserId))]
+    public AppUser User { get; set; } = null!;
+
+
 }
