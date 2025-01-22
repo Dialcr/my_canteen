@@ -1,4 +1,5 @@
 ﻿using AvangTur.Application.Extensions;
+using Canteen.DataAccess.Enums;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto.CreateProduct;
 using Canteen.Services.Dto.Mapper;
@@ -31,10 +32,21 @@ public class CanteenProductController(IProductServices productServices,
 
         return Ok(response.ToProductOutputDto());
     }
+    [HttpGet]
+    [Route("list")]
+    [AllowAnonymous]
+    public ActionResult<IEnumerable<ProductOutputDto>> GetAllProducts(int? establishmentId)
+    {
+        var result = productServices.GetAllProducts(establishmentId);
+
+        logger.LogInformation("CantneeProduct found correctly");
+
+        return Ok(result.Select(x => x.ToProductOutputDto()));
+    }
 
     [HttpPost]
     [Route("create")]
-    [AllowAnonymous]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public IActionResult CreateCanteenProduct(CreateProductDto product)
     {
         var result = productServices.CreateCanteenProduct(product);

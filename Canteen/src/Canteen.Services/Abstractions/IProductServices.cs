@@ -12,5 +12,6 @@ public interface IProductServices
     OneOf<ResponseErrorDto, Product> GetCantneeProductById(int productId);
     OneOf<ResponseErrorDto, Product> CreateCanteenProduct(CreateProductDto product);
     OneOf<ResponseErrorDto, ICollection<ProductOutputDto>> GetCantneeProductsByDietaryRestrictions(string dietaryRestriction);
+    IEnumerable<Product> GetAllProducts(int? establishmentId);
 
 }

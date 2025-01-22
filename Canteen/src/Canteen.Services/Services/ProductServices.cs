@@ -37,6 +37,10 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
                 400);
 
         }
+        var images = product.ImagesUrl.Select(x => new ProductImageUrl
+        {
+            Url = x
+        }).ToList();
         var newProduct = new Product()
         {
             Category = category,
@@ -45,15 +49,16 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
             Description = product.Description,
             Name = product.Name,
             DietaryRestrictions = dietaryRestrictions.ToList(),
-            ImagesUrl = product.ImagesUrl.Select(x => new ProductImageUrl
-            {
-                Url = x
-            }).ToList(),
+            ImagesUrl = images,
             Ingredients = product.Ingredients,
             Price = product.Price,
 
         };
+        newProduct.DietaryRestrictions = dietaryRestrictions.ToList();
+        newProduct.ImagesUrl = images;
+
         context.Products.Add(newProduct);
+        context.SaveChanges();
         return newProduct;
     }
 
@@ -106,6 +111,15 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
                 $"The product with id {productId} has not been found",
                 400);
         }
+        return result;
+    }
+    public IEnumerable<Product> GetAllProducts(int? establishmentId)
+    {
+        var result = context.Products
+            .Include(x => x.DietaryRestrictions)
+            .Include(x => x.ImagesUrl)
+            .Where(x => establishmentId == null || x.EstablishmentId == establishmentId).ToList();
+
         return result;
     }
 

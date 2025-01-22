@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Dto.DietaryRestriction;
+using Canteen.Services.Dto.Images;
 
 namespace Canteen.Services.Dto;
 
@@ -23,7 +24,7 @@ public class ProductOutputDto
     //public ICollection<string>? Ingredients { get; set; }
     public string Ingredients { get; set; }
 
-    public ICollection<ProductImageUrl>? ImagesUrl { get; set; }
+    public IEnumerable<ImagesDto>? ImagesUrl { get; set; }
 }
 
 public static class ProductExtention
@@ -45,7 +46,11 @@ public static class ProductExtention
                 Id = x.Id,
                 Description = x.Description
             }),
-            ImagesUrl = product.ImagesUrl
+            ImagesUrl = product.ImagesUrl.Select(x => new ImagesDto
+            {
+                Id = x.Id,
+                Url = x.Url ?? string.Empty
+            })
         };
 
     }
