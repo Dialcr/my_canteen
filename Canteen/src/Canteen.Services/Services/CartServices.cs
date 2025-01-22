@@ -256,7 +256,10 @@ public class CartServices(EntitiesContext context, ICanteenOrderServices orderSe
                 $"The request with id {requestId} was not found",
                 400);
         }
+        cart.PrductsTotalAmount -= request.TotalAmount;
+        cart.DeliveryTotalAmount -= request.DeliveryAmount;
 
+        context.Carts.Update(cart);
         context.Requests.Remove(request);
 
         try
