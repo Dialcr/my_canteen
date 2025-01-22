@@ -258,14 +258,17 @@ public class CartServices(EntitiesContext context, ICanteenOrderServices orderSe
         }
 
         context.Requests.Remove(request);
-        var affectColumns = await context.SaveChangesAsync();
-        if (affectColumns > 0)
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch
         {
             return Error("Failed to delete request",
                 $"The request with id {requestId} was not deleted",
                 400);
         }
-
         return request.ToCanteenRequestOutputDto();
 
     }
