@@ -135,7 +135,8 @@ public class CartServices(EntitiesContext context, ICanteenOrderServices orderSe
 
         var request = await context.Requests
             .Include(r => r.RequestProducts)!
-            .ThenInclude(requestProduct => requestProduct.Product)
+                .ThenInclude(requestProduct => requestProduct.Product)
+            .Include(x => x.DeliveryTime)
             .FirstOrDefaultAsync(r => r.Id == requestDto.RequestId);
 
         if (request is null)
@@ -199,6 +200,7 @@ public class CartServices(EntitiesContext context, ICanteenOrderServices orderSe
 
         var request = await context.Requests
             .Include(r => r.RequestProducts)!
+            .Include(x => x.DeliveryTime)
             .FirstOrDefaultAsync(r => r.Id == dto.RequestId && r.UserId == userId);
 
         if (request is null)
@@ -272,7 +274,9 @@ public class CartServices(EntitiesContext context, ICanteenOrderServices orderSe
         DateTime newDateTime)
     {
 
-        var request = await context.Requests.Include(x => x.RequestProducts).FirstOrDefaultAsync(x => x.Id == requestId);
+        var request = await context.Requests
+            .Include(x => x.DeliveryTime)
+            .Include(x => x.RequestProducts).FirstOrDefaultAsync(x => x.Id == requestId);
         if (request is null)
         {
             return Error("Request not found",

@@ -1,4 +1,5 @@
 ﻿using Canteen.DataAccess.Entities;
+using Canteen.Services.Dto.DeliveryTime;
 using Canteen.Services.Dto.EstablishmentCategory;
 namespace Canteen.Services.Dto.Establishment;
 public class EstablishmentOutputDto
@@ -12,6 +13,7 @@ public class EstablishmentOutputDto
     public string Description { get; set; } = string.Empty;
     public string StatusBase { get; set; } = string.Empty;
     public IEnumerable<EstablishmentCategoryOutputDto> Categories { get; set; } = [];
+    public IEnumerable<DeliveryTimeOutputDto> DeliveryTime { get; set; } = [];
 
 
 
@@ -35,7 +37,10 @@ public static class EstablishmentExtention
             Image = establishment.Image,
             Name = establishment.Name,
             StatusBase = establishment.StatusBase.ToString(),
-            Categories = categories
+            Categories = categories,
+            DeliveryTime = (establishment.DeliveryTimes is not null)
+                ? establishment.DeliveryTimes.Select(x => x.ToDeliveryTimeOutputDto())
+                : []
         };
 
     }

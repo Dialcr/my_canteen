@@ -19,8 +19,10 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
     public PagedResponse<EstablishmentOutputDto> GetAllEstablishments(int page, int perPage, int? category = null, bool useInactive = false)
     {
         var allEstablishment = (useInactive)
-        ? context.Establishments.Include(x => x.EstablishmentCategories).AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category))
-        : context.Establishments.Include(x => x.EstablishmentCategories).Where(x => x.StatusBase == StatusBase.Active)
+        ? context.Establishments.Include(x => x.EstablishmentCategories)
+            .Include(x => x.DeliveryTimes).AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category))
+        : context.Establishments.Include(x => x.EstablishmentCategories)
+            .Include(x => x.DeliveryTimes).Where(x => x.StatusBase == StatusBase.Active)
             .AsEnumerable().Where(x => category == null || x.EstablishmentCategories.Any(y => y.Id == category)).ToList();
 
         return allEstablishment.Select(x => EstablishmentExtention.ToEstablishmentOutputDtos(x)).ToPagedResult(page, perPage);
@@ -30,6 +32,7 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
         var allEstablishment = context.Establishments.Where(x => x.StatusBase == StatusBase.Active)
         .Include(x => x.Orders)
         .Include(x => x.EstablishmentCategories)
+        .Include(x => x.DeliveryTimes)
         .OrderByDescending(x => x.Orders.Count());
 
         return allEstablishment.Select(x => EstablishmentExtention.ToEstablishmentOutputDtos(x)).ToPagedResult(page, perPage);

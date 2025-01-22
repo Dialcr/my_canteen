@@ -1,11 +1,13 @@
 ﻿using Canteen.DataAccess.Enums;
+using Canteen.Services.Dto.DeliveryTime;
+using Canteen.Services.Dto.Establishment;
 
 namespace Canteen.Services.Dto.CanteenRequest;
 
 public class RequestOutputDto
 {
     public int Id { get; set; }
-    
+
     public int? OrderId { get; set; }
     public int UserId { get; set; }
 
@@ -23,11 +25,11 @@ public class RequestOutputDto
     public IEnumerable<RequestProductDto>? RequestProducts { get; set; }
 
     public RequestStatus Status { get; set; }
-    
+
     public int? CartId { get; set; }
 
     public int DeliveryTimeId { get; set; }
-    public DeliveryTime? DeliveryTime { get; set; }
+    public DeliveryTimeOutputDto? DeliveryTime { get; set; }
 }
 
 
@@ -35,7 +37,7 @@ public static class RequestExtention
 {
     public static RequestOutputDto ToCanteenRequestWithProductsDto(this DataAccess.Entities.CanteenRequest request)
     {
-        
+
         return new RequestOutputDto()
         {
             CreatedAt = request.CreatedAt,
@@ -50,7 +52,9 @@ public static class RequestExtention
             TotalAmount = request.TotalAmount,
             CartId = request.CartId,
             UpdatedAt = request.UpdatedAt,
-            DeliveryTime = request.DeliveryTime ,
+            DeliveryTime = (request.DeliveryTime is not null)
+                ? request.DeliveryTime.ToDeliveryTimeOutputDto()
+                : null,
             RequestProducts = request.RequestProducts!.Select(x => new RequestProductDto()
             {
                 Quantity = x.Quantity,
@@ -60,9 +64,10 @@ public static class RequestExtention
             })
         };
 
-    }public static RequestOutputDto ToCanteenRequestOutputDto(this DataAccess.Entities.CanteenRequest request)
+    }
+    public static RequestOutputDto ToCanteenRequestOutputDto(this DataAccess.Entities.CanteenRequest request)
     {
-        
+
         return new RequestOutputDto()
         {
             CreatedAt = request.CreatedAt,
@@ -77,7 +82,9 @@ public static class RequestExtention
             TotalAmount = request.TotalAmount,
             CartId = request.CartId,
             UpdatedAt = request.UpdatedAt,
-            DeliveryTime = request.DeliveryTime ,
+            DeliveryTime = (request.DeliveryTime is not null)
+                ? request.DeliveryTime.ToDeliveryTimeOutputDto()
+                : null,
             RequestProducts = null
         };
 

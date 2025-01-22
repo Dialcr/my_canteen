@@ -29,6 +29,8 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
             .Include(menu => menu.MenuProducts)
                 .ThenInclude(menuProduct => menuProduct.Product)
                     .ThenInclude(product => product!.ImagesUrl)
+            .Include(x => x.Establishment)
+                .ThenInclude(x => x.DeliveryTimes)
             .Where(x => x.EstablishmentId == idEstablishment)
             .AsEnumerable()
             .Where(x => x.Date.Date >= DateTime.Now.Date);

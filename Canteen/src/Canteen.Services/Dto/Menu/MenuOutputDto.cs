@@ -1,4 +1,6 @@
-﻿namespace Canteen.Services.Dto;
+﻿using Canteen.Services.Dto.DeliveryTime;
+
+namespace Canteen.Services.Dto;
 
 public class MenuOutputDto
 {
@@ -6,7 +8,9 @@ public class MenuOutputDto
 
     public DateTimeOffset Date { get; set; }
 
-    public ICollection<MenuProductOutputDto>? MenuProducts { get; set; }
+    public IEnumerable<MenuProductOutputDto>? MenuProducts { get; set; }
+    public IEnumerable<DeliveryTimeOutputDto> DeliveryTimes { get; set; } = [];
+
 }
 
 public static class MenuExtention
@@ -19,7 +23,10 @@ public static class MenuExtention
 
             Id = menu.Id,
             Date = menu.Date,
-            MenuProducts = menu.MenuProducts!.Select(x => x.ToEstablishmentOutputDtoWithProducts()).ToList()
+            MenuProducts = menu.MenuProducts!.Select(x => x.ToEstablishmentOutputDtoWithProducts()).ToList(),
+            DeliveryTimes = (menu.Establishment.DeliveryTimes is not null)
+                ? menu.Establishment.DeliveryTimes.Select(x => x.ToDeliveryTimeOutputDto())
+                : []
         };
 
     }

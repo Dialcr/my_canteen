@@ -22,6 +22,7 @@ public class RequestServices(
         var request = await context.Requests
             .Include(r => r.Order)
             .Include(r => r.RequestProducts)
+            .Include(x => x.DeliveryTime)
             .SingleOrDefaultAsync(r =>
                 r.Id == requestId &&
                 r.Status == RequestStatus.Planned);
@@ -173,7 +174,8 @@ public class RequestServices(
     {
         var requests = await context.Requests
             .Include(x => x.RequestProducts)
-            .ThenInclude(x => x.Product)
+                .ThenInclude(x => x.Product)
+            .Include(x => x.DeliveryTime)
             .Where(x =>
                 x.UserId == userId &&
                 x.Status != RequestStatus.Cancelled)
@@ -192,6 +194,7 @@ public class RequestServices(
     public async Task<OneOf<ResponseErrorDto, List<CanteenRequest>>> HistoryRequestAsync(int userId)
     {
         var requests = await context.Requests
+            .Include(x => x.DeliveryTime)
             .Where(x =>
                 x.UserId == userId &&
                 (x.Status == RequestStatus.Cancelled ||
@@ -219,6 +222,7 @@ public class RequestServices(
         var request = context.Requests
             .Include(x => x.RequestProducts)!.ThenInclude(requestProduct => requestProduct.Product)
             .Include(x => x.Order)
+            .Include(x => x.DeliveryTime)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
                 x.Status == RequestStatus.Planned);
@@ -269,7 +273,8 @@ public class RequestServices(
             {
                 dayProdcut.Quantity += requestproduct.Quantity;
             }
-        };
+        }
+        ;
         foreach (var dayProdcut in menuChangeDay.MenuProducts)
         {
 
@@ -279,7 +284,8 @@ public class RequestServices(
             {
                 dayProdcut.Quantity -= requestproduct.Quantity;
             }
-        };
+        }
+        ;
 
         request.DeliveryDate = newDeliveryDate;
         request.UpdatedAt = DateTime.Now;
@@ -292,6 +298,7 @@ public class RequestServices(
         DateTime newDeliveryDate)
     {
         var request = await context.Requests
+            .Include(x => x.DeliveryTime)
             .SingleOrDefaultAsync(x =>
                 x.Id == requestId &&
                 x.Status == RequestStatus.Planned);

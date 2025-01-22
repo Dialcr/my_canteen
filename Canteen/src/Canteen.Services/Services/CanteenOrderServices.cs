@@ -161,6 +161,7 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
     {
 
         var request = await context.Requests
+            .Include(x => x.DeliveryTime)
             .Include(r => r.RequestProducts)!.ThenInclude(requestProduct => requestProduct.Product)
             .FirstOrDefaultAsync(r => r.Id == requestDto.RequestId);
 
@@ -257,6 +258,7 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
     {
         var request = await context.Requests
             .Include(x => x.Order)
+            .Include(x => x.DeliveryTime)
             .Include(request => request.RequestProducts!)
             .FirstOrDefaultAsync(r => r.Id == requestId);
 
@@ -332,6 +334,7 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
         var request = context.Requests.Include(x => x.Order)
             .Include(x => x.RequestProducts)
             .Include(x => x.Order)
+            .Include(x => x.DeliveryTime)
             .SingleOrDefault(x =>
                 x.Id == requestId &&
                 x.Status == RequestStatus.Planned
