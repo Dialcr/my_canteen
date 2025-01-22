@@ -90,8 +90,12 @@ public class RequestServices(
         CreateRequestInputDto createRequestInputDto,
         int userId)
     {
-        var cart = await context.Carts.Include(x => x.Requests)
+        var cart = await context.Carts
+        .Include(x => x.Requests)
+            .ThenInclude(x => x.DeliveryTime)
+        .Include(x => x.Requests)
                 .ThenInclude(x => x.RequestProducts)
+                    .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.EstablishmentId == createRequestInputDto.EstablishmentId
                                      && x.UserId == userId);
         if (cart is null)
@@ -102,8 +106,6 @@ public class RequestServices(
                 UserId = userId,
                 // Requests = new List<CanteenRequest>(),
                 EstablishmentId = createRequestInputDto.EstablishmentId,
-
-
             };
             context.Carts.Add(cart);
             try

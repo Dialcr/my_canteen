@@ -122,9 +122,10 @@ public class CartServices(EntitiesContext context, ICanteenOrderServices orderSe
             .FirstOrDefaultAsync(x => x.UserId == userId);
         if (cart is null)
         {
-            return Error("Cart not found",
-                $"The cart of user with id {userId} has not found",
-                400);
+            // return Error("Cart not found",
+            //     $"The cart of user with id {userId} has not found",
+            //     400);
+            return new CartOutputDto();
         }
         return cart.ToCanteenCartDto();
     }
