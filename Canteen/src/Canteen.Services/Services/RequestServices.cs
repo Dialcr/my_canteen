@@ -91,54 +91,83 @@ public class RequestServices(
         int userId)
     {
         var cart = await context.Carts.Include(x => x.Requests)
+                .ThenInclude(x => x.RequestProducts)
             .FirstOrDefaultAsync(x => x.EstablishmentId == createRequestInputDto.EstablishmentId
                                      && x.UserId == userId);
         if (cart is null)
         {
             cart = new CanteenCart()
             {
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 UserId = userId,
-                Requests = new List<CanteenRequest>(),
-                EstablishmentId = createRequestInputDto.EstablishmentId
+                // Requests = new List<CanteenRequest>(),
+                EstablishmentId = createRequestInputDto.EstablishmentId,
+
+
             };
             context.Carts.Add(cart);
-        }
-
-        var estableshimentProducts = context.Products.Where(x => x.EstablishmentId == createRequestInputDto.EstablishmentId);
-
-
-        var requestProducts = createRequestInputDto.RequestProducts
-            .Select(x => new RequestProduct()
+            try
             {
-                ProductId = x.ProductId,
-                Quantity = x.Quantity,
-                UnitPrice = estableshimentProducts.FirstOrDefault(p => p.Id == x.ProductId)!.Price
 
-            }).ToList();
-        if (requestProducts.Count() != createRequestInputDto.RequestProducts.Count)
+                await context.SaveChangesAsync();
+            }
+            catch (System.Exception e)
+            {
+
+                return Error(e.Message, e.ToString(), 500);
+            }
+
+        }
+        var requestProd = createRequestInputDto.RequestProducts.Select(x => x.ProductId);
+        var estableshimentProducts = context.MenuProducts.Include(x => x.Product)
+            .Where(x => x.Product.EstablishmentId == createRequestInputDto.EstablishmentId
+                && requestProd.Contains(x.Id)).ToList();
+        if (estableshimentProducts.Count() != createRequestInputDto.RequestProducts.Count())
         {
             return Error("Invalid request",
                 "One or more products are not available",
                 400);
         }
+
+
+        var requestProducts = createRequestInputDto.RequestProducts
+            .Select(x =>
+            {
+                var prod = estableshimentProducts.FirstOrDefault(p => p.Id == x.ProductId)!.Product;
+                return new RequestProduct()
+                {
+                    ProductId = prod.Id,
+                    Quantity = x.Quantity,
+                    UnitPrice = prod.Price,
+                };
+            }).ToList();
         var request = new CanteenRequest
         {
             UserId = userId,
-            CreatedAt = DateTime.Now,
-            DeliveryDate = createRequestInputDto.DeliveryDate,
+            CreatedAt = DateTime.UtcNow,
+            DeliveryDate = createRequestInputDto.DeliveryDate.ToUniversalTime(),
             DeliveryLocation = createRequestInputDto.DeliveryLocation,
             TotalAmount = requestProducts.Sum(x => x.UnitPrice * x.Quantity),
             DeliveryAmount = createRequestInputDto.DeliveryAmount,
             Status = RequestStatus.Planned,
             //todo add delivery type verification
             DeliveryTimeId = createRequestInputDto.DeliveryTimeId,
-            RequestProducts = requestProducts
+            RequestProducts = requestProducts,
         };
 
         cart!.Requests!.Add(request);
-        await context.SaveChangesAsync();
+        cart.PrductsTotalAmount = cart.Requests.Sum(x => x.TotalAmount);
+        try
+        {
+            context.Carts.Update(cart);
+            await context.SaveChangesAsync();
 
+        }
+        catch (System.Exception e)
+        {
+            return Error(e.Message, e.ToString(), 500);
+
+        }
         return cart.ToCanteenCartDto();
     }
     private OneOf<ResponseErrorDto, CanteenRequest> GetAviableProduct(Menu menuDay, CanteenRequest canteenRequestPlanning)
