@@ -3,6 +3,7 @@ using Canteen.DataAccess.Entities;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
+using Canteen.Services.Dto.DietaryRestriction;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -96,8 +97,8 @@ namespace Canteen.Testing.Controllers
             var products = new List<ProductOutputDto>
             {
                 new() { Id = 1, Name = "Veg Product 1" },
-                new() { Id = 2, Name = "Veg Product 2", DietaryRestrictions =  new List<DietaryRestriction>{
-                        new DietaryRestriction{
+                new() { Id = 2, Name = "Veg Product 2", DietaryRestrictions =  new List<DietaryRestrictionDto>{
+                        new DietaryRestrictionDto{
                             Description = restriction
                         }
                     }

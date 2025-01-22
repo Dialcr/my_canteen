@@ -1,5 +1,6 @@
 ﻿using AvangTur.Application.Extensions;
 using Canteen.Services.Abstractions;
+using Canteen.Services.Dto.CreateProduct;
 using Canteen.Services.Dto.Mapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,25 @@ public class CanteenProductController(IProductServices productServices,
     public IActionResult GetCanteenProductById(int productId)
     {
         var result = productServices.GetCantneeProductById(productId);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+
+            return BadRequest(error);
+        }
+
+        logger.LogInformation("CantneeProduct found correctly");
+
+        return Ok(response.ToProductOutputDto());
+    }
+
+    [HttpPost]
+    [Route("create")]
+    [AllowAnonymous]
+    public IActionResult CreateCanteenProduct(CreateProductDto product)
+    {
+        var result = productServices.CreateCanteenProduct(product);
 
         if (result.TryPickT0(out var error, out var response))
         {

@@ -3,6 +3,7 @@ using Canteen.DataAccess;
 using Canteen.DataAccess.Enums;
 using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
+using Canteen.Services.Dto.CreateProduct;
 using Canteen.Services.Dto.Mapper;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -12,6 +13,50 @@ namespace Canteen.Services.Services;
 
 public class ProductServices(EntitiesContext context) : CustomServiceBase(context), IProductServices
 {
+    public OneOf<ResponseErrorDto, Product> CreateCanteenProduct(CreateProductDto product)
+    {
+        if (!System.Enum.TryParse(product.Category, true, out ProductCategory category))
+        {
+            return Error("Invalid category",
+                $"Invalid category",
+                400);
+        }
+        var establishment = context.Establishments.FirstOrDefault(x => x.Id == product.EstablishmentId);
+        if (establishment is null)
+        {
+            return Error("Establishment not found",
+                $"Establishment not found",
+                400);
+
+        }
+        var dietaryRestrictions = context.DietaryRestrictions.Where(x => product.DietaryRestrictionIds.Contains(x.Id));
+        if (dietaryRestrictions.Count() != product.DietaryRestrictionIds.Count())
+        {
+            return Error("Dietary restriction not found",
+                $"Dietary restriction not found",
+                400);
+
+        }
+        var newProduct = new Product()
+        {
+            Category = category,
+            EstablishmentId = establishment.Id,
+            Establishment = establishment,
+            Description = product.Description,
+            Name = product.Name,
+            DietaryRestrictions = dietaryRestrictions.ToList(),
+            ImagesUrl = product.ImagesUrl.Select(x => new ProductImageUrl
+            {
+                Url = x
+            }).ToList(),
+            Ingredients = product.Ingredients,
+            Price = product.Price,
+
+        };
+        context.Products.Add(newProduct);
+        return newProduct;
+    }
+
     public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(string categoryProduct)
     {
         if (!System.Enum.TryParse(categoryProduct, out ProductCategory category))
