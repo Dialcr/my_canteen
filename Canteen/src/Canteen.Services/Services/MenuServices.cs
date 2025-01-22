@@ -29,7 +29,9 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
             .Include(menu => menu.MenuProducts)
                 .ThenInclude(menuProduct => menuProduct.Product)
                     .ThenInclude(product => product!.ImagesUrl)
-            .Where(x => x.EstablishmentId == idEstablishment && x.Date.Date >= DateTime.Now.Date);
+            .Where(x => x.EstablishmentId == idEstablishment)
+            .AsEnumerable()
+            .Where(x => x.Date.Date >= DateTime.Now.Date);
         return menus.ToList();
     }
     private Menu? FindMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date)
@@ -55,7 +57,7 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
     }
     public OneOf<ResponseErrorDto, Response<NoContentData>> CreateMenu(CreateMenuInputDto newMenu)
     {
-        var existingMenu = context.Menus.Where(x => x.Date.Date == newMenu.MenuDate.Date);
+        var existingMenu = context.Menus.Where(x => x.EstablishmentId == newMenu.EstablishmentId).AsEnumerable().Where(x => x.Date.Date == newMenu.MenuDate.Date);
         if (existingMenu.Any())
         {
             return Error("Menu already exists", "Menu already exists in that date ", 400);
@@ -65,9 +67,9 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
         {
             return Error("Establishment not found", "Establishment not found", 400);
         }
-        var productsIds = newMenu.MenuProducts.Select(x => x.ProductId);
+        var productsIds = newMenu.MenuProducts.Select(x => x.ProductId).ToList();
         var products = context.Products.Where(x => productsIds.Contains(x.Id) && x.EstablishmentId == newMenu.EstablishmentId)
-        .Include(x => x.EstablishmentId);
+        .Include(x => x.Establishment).ToList();
         if (products.Count() != productsIds.Count())
         {
             return Error("Some products no found from that establishment", "Some products no found from that establishment", 400);
@@ -83,7 +85,7 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
             }).ToList()
         };
         context.Menus.Add(menu);
-
+        context.SaveChanges();
         return new Response<NoContentData>();
     }
 
