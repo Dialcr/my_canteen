@@ -8,4 +8,11 @@ public class ProductImageUrl
     [Required]
     [MaxLength(500)]
     public string Url { get; set; } = "";
+
+    public int ProductId { get; set; }
+
+    [ForeignKey(nameof(ProductId))]
+    public Product Product { get; set; } = null!;
+
+
 }

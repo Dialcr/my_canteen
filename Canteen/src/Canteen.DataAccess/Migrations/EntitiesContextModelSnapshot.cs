@@ -248,7 +248,7 @@ namespace Canteen.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DietaryRestriction");
+                    b.ToTable("DietaryRestrictions");
                 });
 
             modelBuilder.Entity("Canteen.DataAccess.Entities.Discount", b =>

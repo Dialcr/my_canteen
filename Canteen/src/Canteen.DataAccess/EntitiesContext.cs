@@ -26,7 +26,7 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
     public DbSet<ProductImageUrl> ProductImageUrls { get; set; }
     public DbSet<Discount> Discounts { get; set; }
     public DbSet<KeyValueData> KeyValueData { get; set; }
-    public DbSet<KeyValueData> DietaryRestrictions { get; set; }
+    public DbSet<DietaryRestriction> DietaryRestrictions { get; set; }
 
     public DbSet<CanteenCart> Carts { get; set; }
     public DbSet<DeliveryTime> DeliveryTimes { get; set; }
@@ -122,7 +122,9 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
             .WithMany(x => x.Products);
 
         modelBuilder.Entity<Product>()
-            .HasMany(x => x.ImagesUrl);
+            .HasMany(x => x.ImagesUrl)
+            .WithOne(x => x.Product)
+            .HasForeignKey(x => x.ProductId);
     }
 
     private void ConfigureDiscountEntity(ModelBuilder modelBuilder)
