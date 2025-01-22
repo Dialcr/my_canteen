@@ -119,7 +119,8 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
                 {
                     dayProduct.Quantity += requestproduct.Quantity;
                 }
-            };
+            }
+            ;
 
             return Error("Request not found",
                 $"Request with id {orderRequest.Id} and status {RequestStatus.Planned} not found",
@@ -286,7 +287,7 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
             Status = RequestStatus.Planned,
             OrderId = request.OrderId,
             UserId = request.UserId,
-            CreatedAt = DateTimeOffset.Now,
+            CreatedAt = DateTime.Now,
             TotalAmount = request.TotalAmount,
             RequestProducts = new List<RequestProduct>(),
             DeliveryTimeId = request.DeliveryTimeId,
@@ -351,7 +352,8 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
                 {
                     dayProduct.Quantity += requestproduct.Quantity;
                 }
-            };
+            }
+            ;
 
             await UpdateTotalsAsync(request.OrderId!.Value);
             await ApplyDiscountToOrderAsync(request.OrderId!.Value);

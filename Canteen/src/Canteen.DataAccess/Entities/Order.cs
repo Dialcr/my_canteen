@@ -16,9 +16,9 @@ public class Order : IAuditableEntity
     [MaxLength(50)]
     public OrderStatus Status { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? UpdatedAt { get; set; }
-    public DateTimeOffset? CanceledAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public DateTime? CanceledAt { get; set; }
 
     public decimal PrductsTotalAmount { get; set; }
     public decimal ProductTotalDiscount { get; set; }

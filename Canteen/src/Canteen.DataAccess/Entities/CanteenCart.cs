@@ -10,7 +10,7 @@ public class CanteenCart
     [ForeignKey(nameof(EstablishmentId))]
     public Establishment? Establishment { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public decimal PrductsTotalAmount { get; set; }
     public decimal ProductTotalDiscount { get; set; }
     public decimal DeliveryTotalAmount { get; set; }

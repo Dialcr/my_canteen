@@ -5,7 +5,7 @@ public class Menu
         [Key]
         public int Id { get; set; }
 
-        public DateTimeOffset Date { get; set; }
+        public DateTime Date { get; set; }
 
         [Required]
         public int EstablishmentId { get; set; }
