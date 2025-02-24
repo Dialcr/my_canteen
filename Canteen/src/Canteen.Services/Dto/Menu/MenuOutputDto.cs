@@ -10,6 +10,9 @@ public class MenuOutputDto
 
     public IEnumerable<MenuProductOutputDto>? MenuProducts { get; set; }
     public IEnumerable<DeliveryTimeOutputDto> DeliveryTimes { get; set; } = [];
+    public string StatusBase { get; set; } = string.Empty;
+
+
 
 }
 
@@ -26,7 +29,8 @@ public static class MenuExtention
             MenuProducts = menu.MenuProducts!.Select(x => x.ToEstablishmentOutputDtoWithProducts()).ToList(),
             DeliveryTimes = (menu.Establishment.DeliveryTimes is not null)
                 ? menu.Establishment.DeliveryTimes.Select(x => x.ToDeliveryTimeOutputDto())
-                : []
+                : [],
+            StatusBase = menu.StatusBase.ToString()
         };
 
     }

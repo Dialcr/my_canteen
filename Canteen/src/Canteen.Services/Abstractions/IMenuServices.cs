@@ -8,7 +8,7 @@ namespace Canteen.Services.Abstractions;
 public interface IMenuServices
 {
     public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date, bool useInactive = false);
-    public OneOf<ResponseErrorDto, IEnumerable<Menu>> ListMenuByEstablishment(int idEstablishment);
+    public OneOf<ResponseErrorDto, IEnumerable<Menu>> ListMenuByEstablishment(int idEstablishment, bool useInactive = false);
 
     public OneOf<ResponseErrorDto, Response<NoContentData>> CreateMenu(CreateMenuInputDto menu);
 

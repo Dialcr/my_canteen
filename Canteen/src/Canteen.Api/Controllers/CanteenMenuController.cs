@@ -79,7 +79,7 @@ public class CanteenMenuController(IMenuServices menuServices,
     public IActionResult GetMenusAdmin(int establishmentId)
     {
         _logger.LogInformation("Listing menus by establishments");
-        var result = menuServices.ListMenuByEstablishment(establishmentId);
+        var result = menuServices.ListMenuByEstablishment(establishmentId, useInactive: true);
         if (result.TryPickT0(out var error, out var response))
         {
             _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");

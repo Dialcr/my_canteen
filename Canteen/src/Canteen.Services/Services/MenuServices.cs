@@ -21,8 +21,8 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
             .FirstOrDefault(menu =>
                 menu.EstablishmentId == idEstablishment &&
                 menu.Date.Date == date.Date &&
-                (useInactive == false || menu.Establishment!.StatusBase == StatusBase.Active) &&
-                (useInactive == false || menu.StatusBase == StatusBase.Active));
+                (useInactive == true || menu.Establishment!.StatusBase == StatusBase.Active) &&
+                (useInactive == true || menu.StatusBase == StatusBase.Active));
 
         if (menu is null)
         {
@@ -31,7 +31,7 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
 
         return menu;
     }
-    public OneOf<ResponseErrorDto, IEnumerable<Menu>> ListMenuByEstablishment(int idEstablishment)
+    public OneOf<ResponseErrorDto, IEnumerable<Menu>> ListMenuByEstablishment(int idEstablishment, bool useInactive = false)
     {
         var menus = context.Menus
             .Include(menu => menu.MenuProducts)
@@ -42,7 +42,8 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
                     .ThenInclude(product => product!.ImagesUrl)
             .Include(x => x.Establishment)
                 .ThenInclude(x => x.DeliveryTimes)
-            .Where(x => x.EstablishmentId == idEstablishment)
+            .Where(x => x.EstablishmentId == idEstablishment &&
+                (useInactive == true || x.StatusBase == StatusBase.Active))
             .AsEnumerable()
             .Where(x => x.Date.Date >= DateTime.Now.Date);
         return menus.ToList();

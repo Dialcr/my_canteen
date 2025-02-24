@@ -154,7 +154,7 @@ public static class ServiceCollectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(option =>
         {
-            option.SwaggerDoc("v1", new OpenApiInfo { Title = "Practices", Version = "1", });
+            option.SwaggerDoc("v1", new OpenApiInfo { Title = "CanteenApi", Version = "1", });
 
             option.AddSecurityDefinition(
                 "Bearer",
