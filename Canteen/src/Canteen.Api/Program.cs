@@ -21,6 +21,7 @@ builder.Services.SetDbContext(builder.Configuration);
 builder.Services.SetOurServices(builder.Configuration);
 builder.Services.SetAuthentication(builder.Configuration);
 builder.Services.SetCors(builder.Configuration, corsPolicyName);
+builder.Services.AddCloudinaryService(builder.Configuration);
 // builder.Services.AddTransient<IpAddressMiddleware>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>

@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Canteen.DataAccess.Entities;
+using Canteen.DataAccess.Settings;
+using CloudinaryDotNet;
+using Microsoft.Extensions.Options;
 
 namespace Canteen;
 
@@ -186,4 +189,21 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+    public static void AddCloudinaryService(this IServiceCollection services, IConfiguration configuration)
+    {
+        //charge cloudinary configuration settings 
+        services.Configure<CloudinarySettings>(
+            configuration.GetSection("CloudinarySettings"));
+
+        // Registrar Cloudinary
+        services.AddSingleton(provider =>
+        {
+            var config = provider.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+            return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
+        });
+
+    }
 }
+
+
+
