@@ -9,9 +9,20 @@ namespace Canteen.Services.Services;
 
 public class MenuServices(EntitiesContext context) : CustomServiceBase(context), IMenuServices
 {
-    public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date)
+    public OneOf<ResponseErrorDto, Menu> GetMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date, bool useInactive = false)
     {
-        var menu = FindMenuByEstablishmentAndDate(idEstablishment, date);
+        var menu = context!.Menus!
+            .Include(menu => menu.MenuProducts)!
+                .ThenInclude(menuProduct => menuProduct.Product)
+                    .ThenInclude(product => product!.DietaryRestrictions)
+            .Include(menu => menu.MenuProducts)!
+                .ThenInclude(menuProduct => menuProduct.Product)
+                    .ThenInclude(product => product!.ImagesUrl)
+            .FirstOrDefault(menu =>
+                menu.EstablishmentId == idEstablishment &&
+                menu.Date.Date == date.Date &&
+                (useInactive == false || menu.Establishment!.StatusBase == StatusBase.Active) &&
+                (useInactive == false || menu.StatusBase == StatusBase.Active));
 
         if (menu is null)
         {
@@ -36,21 +47,6 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
             .Where(x => x.Date.Date >= DateTime.Now.Date);
         return menus.ToList();
     }
-    private Menu? FindMenuByEstablishmentAndDate(int idEstablishment, DateTimeOffset date)
-    {
-        return context.Menus
-            .Include(menu => menu.MenuProducts)
-            .ThenInclude(menuProduct => menuProduct.Product)
-            .ThenInclude(product => product!.DietaryRestrictions)
-            .Include(menu => menu.MenuProducts)
-            .ThenInclude(menuProduct => menuProduct.Product)
-            .ThenInclude(product => product!.ImagesUrl)
-            .SingleOrDefault(menu =>
-                menu.EstablishmentId == idEstablishment &&
-                menu.Date.Date == date.Date &&
-                menu.Establishment.StatusBase == StatusBase.Active);
-    }
-
     private OneOf<ResponseErrorDto, Menu> CreateMenuNotFoundError(int idEstablishment, DateTimeOffset date)
     {
         return Error("Menu not found",
@@ -87,6 +83,76 @@ public class MenuServices(EntitiesContext context) : CustomServiceBase(context),
             }).ToList()
         };
         context.Menus.Add(menu);
+        context.SaveChanges();
+        return new Response<NoContentData>();
+    }
+
+    public OneOf<ResponseErrorDto, Response<NoContentData>> ChangeMenuStatus(int menuId, StatusBase newStatus)
+    {
+        var menu = context.Menus.Find(menuId);
+        if (menu == null)
+        {
+            return Error("Menu not found", $"Menu with ID {menuId} not found", 400);
+        }
+
+        menu.StatusBase = newStatus;
+        context.SaveChanges();
+        return new Response<NoContentData>();
+    }
+
+    public OneOf<ResponseErrorDto, Response<NoContentData>> ToggleMenuStatus(int menuId)
+    {
+        var menu = context.Menus.Find(menuId);
+        if (menu == null)
+        {
+            return Error("Menu not found", $"Menu with ID {menuId} not found", 400);
+        }
+
+        menu.StatusBase = menu.StatusBase == StatusBase.Active ? StatusBase.Inactive : StatusBase.Active;
+        context.SaveChanges();
+        return new Response<NoContentData>();
+    }
+
+    public OneOf<ResponseErrorDto, Response<NoContentData>> UpdateMenuProducts(int menuId, IEnumerable<MenuProductDto> products)
+    {
+        var menu = context.Menus
+            .Include(m => m.MenuProducts)
+            .FirstOrDefault(m => m.Id == menuId);
+
+        if (menu == null)
+        {
+            return Error("Menu not found", $"Menu with ID {menuId} not found", 400);
+        }
+
+        var productIds = products.Select(p => p.ProductId).ToList();
+        var existingProducts = menu.MenuProducts.Select(mp => mp.CanteenProductId).ToList();
+
+        // Add new products or update quantity of existing products
+        foreach (var product in products)
+        {
+            var existingProduct = menu.MenuProducts.FirstOrDefault(mp => mp.CanteenProductId == product.ProductId);
+            if (existingProduct != null)
+            {
+                existingProduct.Quantity = product.Quantity;
+            }
+            else
+            {
+                menu.MenuProducts.Add(new MenuProduct
+                {
+                    CanteenProductId = product.ProductId,
+                    Quantity = product.Quantity,
+                    MenuId = menuId
+                });
+            }
+        }
+
+        // Remove products not in the new list
+        var productsToRemove = menu.MenuProducts.Where(mp => !productIds.Contains(mp.CanteenProductId)).ToList();
+        foreach (var productToRemove in productsToRemove)
+        {
+            menu.MenuProducts.Remove(productToRemove);
+        }
+
         context.SaveChanges();
         return new Response<NoContentData>();
     }

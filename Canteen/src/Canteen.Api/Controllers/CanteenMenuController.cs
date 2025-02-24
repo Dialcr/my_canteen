@@ -16,6 +16,7 @@ public class CanteenMenuController(IMenuServices menuServices,
 
     [HttpGet]
     [Route("get")]
+    [AllowAnonymous]
     public IActionResult GetMenuByEstablishmentDate(
         int establishmentId,
         DateTime date)
@@ -59,7 +60,7 @@ public class CanteenMenuController(IMenuServices menuServices,
     }
     [HttpGet]
     [Route("list/menu/{establishmentId}")]
-    [AllowAnonymous]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public IActionResult GetMenus(int establishmentId)
     {
         _logger.LogInformation("Listing menus by establishments");
@@ -72,5 +73,52 @@ public class CanteenMenuController(IMenuServices menuServices,
         _logger.LogInformation("Finish listing menus");
         return Ok(response.Select(x => x.ToMenuOutputDto()));
     }
+    [HttpGet]
+    [Route("get/admin/{establishmentId}")]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
+    public IActionResult GetMenusAdmin(int establishmentId)
+    {
+        _logger.LogInformation("Listing menus by establishments");
+        var result = menuServices.ListMenuByEstablishment(establishmentId);
+        if (result.TryPickT0(out var error, out var response))
+        {
+            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+        _logger.LogInformation("Finish listing menus");
+        return Ok(response.Select(x => x.ToMenuOutputDto()));
+    }
+    [HttpPatch]
+    [Route("status/{menuId}")]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
+    public IActionResult ToggleMenuStatussAdmin(int menuId)
+    {
+        _logger.LogInformation("Toggle menus status start");
+        var result = menuServices.ToggleMenuStatus(menuId);
+        if (result.TryPickT0(out var error, out var response))
+        {
+            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+        _logger.LogInformation("Finish toggling menus status");
+        return Ok(response);
+    }
+
+    [HttpPut]
+    [Route("update")]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
+    public IActionResult UpdateMenu(UpdateMenuDto updateMenuDto)
+    {
+        _logger.LogInformation("Menu update start");
+        var result = menuServices.UpdateMenuProducts(updateMenuDto.MenuId, updateMenuDto.Products);
+        if (result.TryPickT0(out var error, out var response))
+        {
+            _logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+        _logger.LogInformation("Finish menu update");
+        return Ok(response);
+    }
+
 
 }
