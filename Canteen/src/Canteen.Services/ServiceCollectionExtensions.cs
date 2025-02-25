@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection SetOurServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+        services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
 
         services.AddSingleton<IEmailSender, AmazonSesEmailSender>();
         services.AddScoped<IpAddressServices, IpAddressServices>();
@@ -26,6 +27,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserServices, UserServicers>();
         services.AddScoped<TokenUtil, TokenUtil>();
         services.AddScoped<IEstablishmentCategoryServices, EstablishmentCategoryServices>();
+        services.AddScoped<IDeliveryTimeService, DeliveryTimeService>();
+        services.AddScoped<IImageService, ImageService>();
 
         return services;
     }
