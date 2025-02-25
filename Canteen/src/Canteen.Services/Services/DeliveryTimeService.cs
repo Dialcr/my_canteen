@@ -20,10 +20,10 @@ public class DeliveryTimeService(EntitiesContext context) : CustomServiceBase(co
         return deliveryTime.ToDeliveryTimeOutputDto();
     }
 
-    public OneOf<ResponseErrorDto, IEnumerable<DeliveryTimeOutputDto>> GetAllDeliveryTimes()
+    public OneOf<ResponseErrorDto, IEnumerable<DeliveryTimeOutputDto>> GetAllDeliveryTimes(int? establishmentId = null)
     {
         var deliveryTimes = context.DeliveryTimes.ToList();
-        var deliveryTimeDtos = deliveryTimes.Select(dt => dt.ToDeliveryTimeOutputDto()).ToList();
+        var deliveryTimeDtos = deliveryTimes.Where(x => (establishmentId == null || x.EstablishmentId == establishmentId)).Select(dt => dt.ToDeliveryTimeOutputDto()).ToList();
         return deliveryTimeDtos;
     }
 

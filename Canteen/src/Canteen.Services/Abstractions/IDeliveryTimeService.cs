@@ -10,6 +10,6 @@ public interface IDeliveryTimeService
     OneOf<ResponseErrorDto, Response<NoContentData>> CreateDeliveryTime(CreateDeliveryTimeDto deliveryTimeDto);
     OneOf<ResponseErrorDto, Response<NoContentData>> UpdateDeliveryTime(UpdateDeliveryTimeDto deliveryTimeDto);
     OneOf<ResponseErrorDto, Response<NoContentData>> DeleteDeliveryTime(int id);
-    public OneOf<ResponseErrorDto, IEnumerable<DeliveryTimeOutputDto>> GetAllDeliveryTimes();
+    public OneOf<ResponseErrorDto, IEnumerable<DeliveryTimeOutputDto>> GetAllDeliveryTimes(int? establishmentId = null);
 
 }

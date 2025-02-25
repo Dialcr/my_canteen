@@ -1,3 +1,4 @@
+using Canteen.DataAccess.Enums;
 using Canteen.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ namespace Canteen.Controllers
         }
 
         [HttpPost("upload")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(RoleNames.ADMIN))]
         public async Task<IActionResult> UploadImage(IFormFile image)
         {
             _logger.LogInformation("UploadImage | Execution started");
@@ -40,7 +41,7 @@ namespace Canteen.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error uploading image: {ex.Message}");
-                return StatusCode(500, "Error uploading image");
+                return StatusCode(400, "Error uploading image");
             }
         }
     }

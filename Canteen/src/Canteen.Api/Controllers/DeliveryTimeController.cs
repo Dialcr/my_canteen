@@ -76,9 +76,21 @@ public class DeliveryTimeController : ControllerBase
     }
 
     [HttpGet]
+    [Route("/all")]
     public IActionResult GetAllDeliveryTimes()
     {
         var result = _deliveryTimeService.GetAllDeliveryTimes();
+        return result.Match<IActionResult>(
+            error => StatusCode(error.Status, error.Detail),
+            deliveryTimes => Ok(deliveryTimes)
+        );
+    }
+    [HttpGet]
+    [Route("/all/{establishmentId}")]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
+    public IActionResult GetAllDeliveryTimesByEstablishment(int? establishmentId = null)
+    {
+        var result = _deliveryTimeService.GetAllDeliveryTimes(establishmentId);
         return result.Match<IActionResult>(
             error => StatusCode(error.Status, error.Detail),
             deliveryTimes => Ok(deliveryTimes)
