@@ -14,9 +14,8 @@ public class EstablishmentOutputDto
     public string StatusBase { get; set; } = string.Empty;
     public IEnumerable<EstablishmentCategoryOutputDto> Categories { get; set; } = [];
     public IEnumerable<DeliveryTimeOutputDto> DeliveryTime { get; set; } = [];
-
-
-
+    public string? Address { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; } = string.Empty;
 }
 
 public static class EstablishmentExtention
@@ -40,7 +39,9 @@ public static class EstablishmentExtention
             Categories = categories,
             DeliveryTime = (establishment.DeliveryTimes is not null)
                 ? establishment.DeliveryTimes.Select(x => x.ToDeliveryTimeOutputDto())
-                : []
+                : [],
+            Address = establishment.Address,
+            PhoneNumber = establishment.PhoneNumber
         };
 
     }
