@@ -7,10 +7,10 @@ public class Product
     [Key] public int Id { get; set; }
 
     [MaxLength(100)]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [MaxLength(255)]
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     [MaxLength(50)]
     public ProductCategory Category { get; set; }
@@ -25,7 +25,7 @@ public class Product
     public Establishment? Establishment { get; set; }
 
     public ICollection<DietaryRestriction> DietaryRestrictions { get; set; } = [];
-    public string Ingredients { get; set; }
+    public string Ingredients { get; set; } = string.Empty;
     public ICollection<ProductImageUrl> ImagesUrl { get; set; } = [];
 
 }

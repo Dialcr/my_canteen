@@ -58,6 +58,7 @@ public class EstablishmentCategoryServices(EntitiesContext context) : CustomServ
 
         establishmentCategory.Name = establishmentCategoryDto.Name;
         establishmentCategory.Description = establishmentCategoryDto.Description;
+        establishmentCategory.Image = establishmentCategoryDto.Image;
 
         context.EstablishmentsCategory.Update(establishmentCategory);
         await context.SaveChangesAsync();

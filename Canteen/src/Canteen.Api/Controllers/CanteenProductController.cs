@@ -63,6 +63,23 @@ public class CanteenProductController(IProductServices productServices,
         return Ok(response.ToProductOutputDto());
     }
 
+    [HttpPut]
+    [Route("update/{productId}")]
+    [Authorize(Roles = nameof(RoleNames.ADMIN))]
+    public IActionResult UpdateCanteenProduct(int productId, CreateProductDto product)
+    {
+        var result = productServices.UpdateCanteenProduct(productId, product);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+
+        logger.LogInformation("CanteenProduct updated correctly");
+        return Ok(response.ToProductOutputDto());
+    }
+
     [HttpGet]
     [Route("get/category")]
     [AllowAnonymous]

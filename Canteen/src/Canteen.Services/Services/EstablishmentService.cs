@@ -102,7 +102,8 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
             Address = establishmentDto.Address,
             StatusBase = StatusBase.Active,
             PhoneNumber = establishmentDto.PhoneNumber,
-            EstablishmentCategories = establishmentCategory
+            EstablishmentCategories = establishmentCategory,
+            Image = establishmentDto.Image
         };
         context.Establishments.Add(establishment);
         await context.SaveChangesAsync();
@@ -165,6 +166,7 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
 
         establishment.EstablishmentCategories = finalEstablishmentcategory;
         establishment.DeliveryTimes = finalDeliveryTime;
+        establishment.Image = establishmentDto.Image;
 
         context.Establishments.Update(establishment);
         await context.SaveChangesAsync();

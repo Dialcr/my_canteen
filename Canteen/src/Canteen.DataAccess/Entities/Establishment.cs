@@ -8,7 +8,7 @@ public class Establishment
     public int Id { get; set; }
 
     [MaxLength(50)]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [MaxLength(255)]
     public string? Image { get; set; }

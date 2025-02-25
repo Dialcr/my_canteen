@@ -62,6 +62,50 @@ public class ProductServices(EntitiesContext context) : CustomServiceBase(contex
         return newProduct;
     }
 
+    public OneOf<ResponseErrorDto, Product> UpdateCanteenProduct(int productId, CreateProductDto product)
+    {
+        var existingProduct = context.Products
+            .Include(p => p.DietaryRestrictions)
+            .Include(p => p.ImagesUrl)
+            .FirstOrDefault(p => p.Id == productId);
+
+        if (existingProduct == null)
+        {
+            return Error("Product not found", $"Product with ID {productId} not found", 400);
+        }
+
+        if (!System.Enum.TryParse(product.Category, true, out ProductCategory category))
+        {
+            return Error("Invalid category", "Invalid category", 400);
+        }
+
+        var establishment = context.Establishments.FirstOrDefault(x => x.Id == product.EstablishmentId);
+        if (establishment is null)
+        {
+            return Error("Establishment not found", "Establishment not found", 400);
+        }
+
+        var dietaryRestrictions = context.DietaryRestrictions.Where(x => product.DietaryRestrictionIds.Contains(x.Id)).ToList();
+        if (dietaryRestrictions.Count != product.DietaryRestrictionIds.Count)
+        {
+            return Error("Dietary restriction not found", "Dietary restriction not found", 400);
+        }
+
+        var images = product.ImagesUrl.Select(x => new ProductImageUrl { Url = x }).ToList();
+
+        existingProduct.Category = category;
+        existingProduct.EstablishmentId = establishment.Id;
+        existingProduct.Description = product.Description;
+        existingProduct.Name = product.Name;
+        existingProduct.DietaryRestrictions = dietaryRestrictions;
+        existingProduct.ImagesUrl = images;
+        existingProduct.Ingredients = product.Ingredients;
+        existingProduct.Price = product.Price;
+
+        context.SaveChanges();
+        return existingProduct;
+    }
+
     public async Task<OneOf<ResponseErrorDto, ICollection<ProductOutputDto>>> GetCantneeProductsByCategoryAsync(string categoryProduct)
     {
         if (!System.Enum.TryParse(categoryProduct, out ProductCategory category))
