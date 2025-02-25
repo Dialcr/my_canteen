@@ -76,7 +76,7 @@ public class DeliveryTimeController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/all")]
+    [Route("all")]
     public IActionResult GetAllDeliveryTimes()
     {
         var result = _deliveryTimeService.GetAllDeliveryTimes();
@@ -86,7 +86,7 @@ public class DeliveryTimeController : ControllerBase
         );
     }
     [HttpGet]
-    [Route("/all/{establishmentId}")]
+    [Route("all/{establishmentId}")]
     [Authorize(Roles = nameof(RoleNames.ADMIN))]
     public IActionResult GetAllDeliveryTimesByEstablishment(int? establishmentId = null)
     {
