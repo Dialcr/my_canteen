@@ -33,7 +33,7 @@ namespace Canteen.Testing.Controllers
             var menu = new Menu { Id = 1, EstablishmentId = establishmentId };
             var expectedMenuOutput = new MenuOutputDto { Id = 1 };
 
-            _menuServicesMock.Setup(x => x.GetMenuByEstablishmentAndDate(establishmentId, date))
+            _menuServicesMock.Setup(x => x.GetMenuByEstablishmentAndDate(establishmentId, date, false))
                 .Returns(OneOf<ResponseErrorDto, Menu>.FromT1(menu));
 
             // Act
@@ -57,7 +57,7 @@ namespace Canteen.Testing.Controllers
                 Detail = "Menu not found"
             };
 
-            _menuServicesMock.Setup(x => x.GetMenuByEstablishmentAndDate(establishmentId, date))
+            _menuServicesMock.Setup(x => x.GetMenuByEstablishmentAndDate(establishmentId, date, false))
                 .Returns(OneOf<ResponseErrorDto, Menu>.FromT0(error));
 
             // Act
@@ -83,7 +83,7 @@ namespace Canteen.Testing.Controllers
                 Detail = "Invalid establishment id"
             };
 
-            _menuServicesMock.Setup(x => x.GetMenuByEstablishmentAndDate(invalidId, date))
+            _menuServicesMock.Setup(x => x.GetMenuByEstablishmentAndDate(invalidId, date, false))
                 .Returns(OneOf<ResponseErrorDto, Menu>.FromT0(error));
 
             // Act

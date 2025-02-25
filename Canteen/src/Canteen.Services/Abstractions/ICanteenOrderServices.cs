@@ -15,6 +15,6 @@ public interface ICanteenOrderServices
     Task<OneOf<ResponseErrorDto, CanteenRequest>> EditRequestIntoOrderAsync(EditRequestDto requestDto);
     Task<OneOf<ResponseErrorDto, CanteenRequest>> PlanningRequestIntoOrderAsync(int requestId, int establishmentId, DateTime newDateTime);
     Task<OneOf<ResponseErrorDto, RequestOutputDto>> CancelRequestIntoOrderAsync(int requestId);
-    Task<OneOf<ResponseErrorDto, OrderOutputDto>> GetOrderByUserIdAsync(int userId);
-
+    Task<OneOf<ResponseErrorDto, IEnumerable<OrderOutputDto>>> GetOrderByUserIdAsync(int userId);
+    Task<OneOf<ResponseErrorDto, IEnumerable<OrderOutputDto>>> GetAllOrdersAsync();
 }

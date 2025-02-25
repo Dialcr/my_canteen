@@ -371,19 +371,32 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
             400);
     }
 
-    public async Task<OneOf<ResponseErrorDto, OrderOutputDto>> GetOrderByUserIdAsync(int userId)
+    public async Task<OneOf<ResponseErrorDto, IEnumerable<OrderOutputDto>>> GetOrderByUserIdAsync(int userId)
     {
-        var order = await context.Orders
+        var orders = await context.Orders
             .Include(x => x.Requests)
-            .ThenInclude(x => x.RequestProducts)
-            .ThenInclude(x => x.Product)
-            .FirstOrDefaultAsync(x => x.UserId == userId);
-        if (order is null)
+                .ThenInclude(x => x.RequestProducts)
+                    .ThenInclude(x => x.Product)
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+        if (orders is null)
         {
             return Error("Cart not found",
                 $"The cart of user with id {userId} has not found",
                 400);
         }
-        return order.ToOrderOutputDto();
+        return orders.Select(x => x.ToOrderOutputDto()).ToList();
+    }
+
+    public async Task<OneOf<ResponseErrorDto, IEnumerable<OrderOutputDto>>> GetAllOrdersAsync()
+    {
+        var orders = await context.Orders
+            .Include(o => o.Requests)
+                .ThenInclude(r => r.RequestProducts)
+                    .ThenInclude(rp => rp.Product)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        return orders.Select(o => o.ToOrderOutputDto()).ToList();
     }
 }

@@ -420,4 +420,31 @@ public class RequestServices(
         }
         return canteenRequest;
     }
+
+    public async Task<OneOf<ResponseErrorDto, RequestOutputDto>> ChangeRequestStatusAsync(int requestId, RequestStatus newStatus)
+    {
+        var request = await context.Requests
+            // .Include(r => r.Order)
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        if (request == null)
+        {
+            return Error("Request not found", $"Request with ID {requestId} not found", 400);
+        }
+
+        request.Status = newStatus;
+        // await context.SaveChangesAsync();
+
+        var order = context.Orders
+            .Include(o => o.Requests)
+            .FirstOrDefault(o => o.Id == request.OrderId);
+
+        if (order != null && order.Requests.All(r => r.Status == newStatus))
+        {
+            order.Status = newStatus == RequestStatus.Delivered ? OrderStatus.Close : OrderStatus.Cancelled;
+        }
+        await context.SaveChangesAsync();
+
+        return request.ToCanteenRequestWithProductsDto();
+    }
 }

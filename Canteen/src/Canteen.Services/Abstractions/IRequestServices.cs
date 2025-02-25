@@ -1,4 +1,5 @@
 using System;
+using Canteen.DataAccess.Enums;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.CanteenRequest;
 
@@ -15,5 +16,5 @@ public interface IRequestServices
     OneOf<ResponseErrorDto, RequestOutputDto> GetRequerstInfoById(int requestId);
     ICollection<RequestProductOutputDto>? AllProductsOk(CanteenRequest canteenRequest, Menu menu);
     Task<OneOf<ResponseErrorDto, CanteenRequest>> DiscountFromInventaryAsync(CanteenRequest canteenRequest, int establishmentId);
-
+    Task<OneOf<ResponseErrorDto, RequestOutputDto>> ChangeRequestStatusAsync(int requestId, RequestStatus newStatus);
 }
