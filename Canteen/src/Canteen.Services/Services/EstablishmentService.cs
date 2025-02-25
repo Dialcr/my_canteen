@@ -131,7 +131,7 @@ public class EstablishmentService(EntitiesContext context) : CustomServiceBase(c
         {
             return Error("Some Category has not found", "Some Category has not found", 400);
         }
-        if (!establishmentDto.DeliveryTimes.Any(x => x.StartTime > x.EndTime || !Enum.TryParse(x.DeliveryTimeType, out DeliveryTimeType _)))
+        if (establishmentDto.DeliveryTimes.Any(x => x.StartTime > x.EndTime || !Enum.TryParse(x.DeliveryTimeType, out DeliveryTimeType _)))
         {
             return Error("Some errors into delivery times ",
                             "Some errors into delivery times ",
