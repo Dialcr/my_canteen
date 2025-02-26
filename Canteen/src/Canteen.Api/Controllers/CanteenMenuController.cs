@@ -61,6 +61,7 @@ public class CanteenMenuController(IMenuServices menuServices,
     [HttpGet]
     [Route("list/menu/{establishmentId}")]
     [Authorize(Roles = nameof(RoleNames.ADMIN))]
+    [Authorize(Roles = nameof(RoleNames.CLIENT))]
     public IActionResult GetMenus(int establishmentId)
     {
         _logger.LogInformation("Listing menus by establishments");
