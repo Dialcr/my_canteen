@@ -71,8 +71,7 @@ public class AuthController : ControllerBase
 
     [HttpPatch]
     [Route("editUser")]
-    [Authorize(Roles = nameof(RoleNames.ADMIN))]
-    [Authorize(Roles = nameof(RoleNames.CLIENT))]
+    [Authorize(Roles = $"{nameof(RoleNames.CLIENT)},{nameof(RoleNames.ADMIN)}")]
     public async Task<IActionResult> EditUser([FromBody] UserIntputDto userIntputDto)
     {
         var result = await _userServicers.EditUser(userIntputDto);

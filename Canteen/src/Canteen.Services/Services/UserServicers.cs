@@ -64,7 +64,8 @@ public class UserServicers(UserManager<AppUser> _userManager,
                 EstablishmentId = userIntputDto.EstablishmentId,
                 LastName = userIntputDto.LastName,
                 PhoneNumber = userIntputDto.PhoneNumber,
-                Address = userIntputDto.Address
+                Address = userIntputDto.Address,
+                UserName = userIntputDto.Name,
             },
             userIntputDto.Password
         );
