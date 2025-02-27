@@ -4,6 +4,7 @@ using Canteen.Services.Abstractions;
 using Canteen.Services.Dto;
 using Canteen.Services.Dto.CanteenRequest;
 using Canteen.Services.Dto.Order;
+using Canteen.Services.Dto.Responses;
 
 namespace Canteen.Services.Services;
 
@@ -15,11 +16,7 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
         var order = await context.Orders.FindAsync(orderId);
         if (order is null)
         {
-            const string errorMessage = "Order not found";
-            const string errorDetail = $"The order with has not found";
-            const int errorStatus = 400;
-
-            return Error(errorMessage, errorDetail, errorStatus);
+            return Error("Order not found", "Order not found", 400);
         }
 
         var totalDiscount = GetApplicableDiscount(order.EstablishmentId, order.PrductsTotalAmount, DiscountType.TotalAmount);
@@ -32,6 +29,35 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
         await context.SaveChangesAsync();
 
         return order;
+    }
+
+    public async Task<OneOf<ResponseErrorDto, Response<NoContentData>>> CheckoutOrder(
+       int orderId, OrderOwnerDto orderOwner)
+    {
+        var order = await context.Orders.Where(x => x.Id == orderId).Include(x => x.Owner).FirstOrDefaultAsync();
+        if (order is null)
+        {
+            return Error("Order not found", "Order not found", 400);
+        }
+
+        //todo implement payment using transfermovil gateway
+        if (order.Status is not OrderStatus.Created)
+        {
+            return Error("Order can't be paid", "Order can't be paid", 400);
+        }
+        order.Owner = new OrderOwner()
+        {
+            Name = orderOwner.Name,
+            PhoneNumber = orderOwner.PhoneNumber,
+            Email = orderOwner.Email,
+            Address = orderOwner.Address,
+            Identifier = orderOwner.Identifier,
+        };
+        order.Status = OrderStatus.Progress;
+        context.Update(order);
+        await context.SaveChangesAsync();
+
+        return new Response<NoContentData>();
     }
 
     private Discount? GetApplicableDiscount(int establishmentId, decimal amount, DiscountType discountType)
@@ -135,8 +161,18 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
         return order;
     }
 
-    public async Task<Order> CreateOrderAsync(CanteenCart cart)
+    public async Task<OneOf<ResponseErrorDto, OrderOutputDto>> CreateOrderAsync(int cartId)
     {
+        var cart = await context.Carts
+            .Include(x => x.Requests)
+                .ThenInclude(x => x.RequestProducts)
+                    .ThenInclude(requestProduct => requestProduct.Product)
+            .SingleOrDefaultAsync(x => x.Id == cartId);
+        if (cart is null)
+        {
+            return Error("Carrito no existe", "Carrito no existe", 400);
+        }
+
         var newOrder = new Order
         {
             CreatedAt = DateTime.Now,
@@ -148,10 +184,14 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
             UserId = cart.UserId
 
         };
-        context.Orders.Add(newOrder);
-        await context.SaveChangesAsync();
-        return newOrder;
+        newOrder.Identifier = newOrder.GenerateIdentifier();
 
+        context.Orders.Add(newOrder);
+        context.Carts.Remove(cart);
+        await context.SaveChangesAsync();
+
+
+        return newOrder.ToOrderOutputDto();
     }
 
 

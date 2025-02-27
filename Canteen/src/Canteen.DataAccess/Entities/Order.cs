@@ -29,4 +29,17 @@ public class Order : IAuditableEntity
     public int UserId { get; set; }
     [ForeignKey(nameof(UserId))]
     public AppUser? User { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string Identifier { get; set; } = string.Empty;
+
+    public string GenerateIdentifier()
+    {
+        return $"ORD-{Id}-{Guid.NewGuid()}";
+    }
+
+    public int? OwnerId { get; set; }
+    [ForeignKey(nameof(OwnerId))]
+    public OrderOwner? Owner { get; set; } = null!;
 }

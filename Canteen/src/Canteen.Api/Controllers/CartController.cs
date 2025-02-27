@@ -27,17 +27,17 @@ public class CartController(ICartServices cartServices, TokenUtil tokenUtil) : C
         }
         return Ok(response);
     }
-    [HttpPatch]
-    [Route("checkout")]
-    public async Task<IActionResult> ApplyDiscountToCart(int cardId)
-    {
-        var result = await cartServices.CheckoutAsync(cardId);
-        if (result.TryPickT0(out var list, out var response))
-        {
-            return BadRequest(list);
-        }
-        return Ok(response);
-    }
+    // [HttpPatch]
+    // [Route("checkout")]
+    // public async Task<IActionResult> ApplyDiscountToCart(int cardId)
+    // {
+    //     var result = await cartServices.CheckoutAsync(cardId);
+    //     if (result.TryPickT0(out var list, out var response))
+    //     {
+    //         return BadRequest(list);
+    //     }
+    //     return Ok(response);
+    // }
 
     [HttpPatch]
     [Route("delete/cart")]

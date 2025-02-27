@@ -9,57 +9,57 @@ namespace Canteen.Services.Services;
 
 public class CartServices(EntitiesContext context, ICanteenOrderServices orderServices, IRequestServices requestServices) : CustomServiceBase(context), ICartServices
 {
-    public async Task<OneOf<IEnumerable<RequestProductOutputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
-    {
-        var cart = await context.Carts
-            .Include(x => x.Requests)
-            .ThenInclude(x => x.RequestProducts)
-            .ThenInclude(requestProduct => requestProduct.Product)
-            .SingleOrDefaultAsync(x => x.Id == cartId);
+    // public async Task<OneOf<IEnumerable<RequestProductOutputDto>, OrderOutputDto>> CheckoutAsync(int cartId)
+    // {
+    //     var cart = await context.Carts
+    //         .Include(x => x.Requests)
+    //         .ThenInclude(x => x.RequestProducts)
+    //         .ThenInclude(requestProduct => requestProduct.Product)
+    //         .SingleOrDefaultAsync(x => x.Id == cartId);
 
-        var productsOutput = new List<RequestProductOutputDto>();
-        if (cart is null)
-        {
-            return productsOutput;
-        }
-        foreach (var request in cart.Requests!)
-        {
-            var menu = await context.Menus.Include(x => x.MenuProducts)
-                .FirstOrDefaultAsync(x => x.EstablishmentId == cart.EstablishmentId
-                                        && x.Date.Date == request.DeliveryDate.Date);
-            if (menu is null)
-            {
+    //     var productsOutput = new List<RequestProductOutputDto>();
+    //     if (cart is null)
+    //     {
+    //         return productsOutput;
+    //     }
+    //     foreach (var request in cart.Requests!)
+    //     {
+    //         var menu = await context.Menus.Include(x => x.MenuProducts)
+    //             .FirstOrDefaultAsync(x => x.EstablishmentId == cart.EstablishmentId
+    //                                     && x.Date.Date == request.DeliveryDate.Date);
+    //         if (menu is null)
+    //         {
 
 
-                productsOutput = productsOutput
-                    .Concat(request.RequestProducts
-                        .Select(x => x.ToRequestProductOutputDto())).ToList();
-            }
-            else
-            {
-                var result = requestServices.AllProductsOk(request, menu!);
-                if (result is not null)
-                {
-                    productsOutput = productsOutput.Concat(result).ToList();
-                }
-            }
+    //             productsOutput = productsOutput
+    //                 .Concat(request.RequestProducts
+    //                     .Select(x => x.ToRequestProductOutputDto())).ToList();
+    //         }
+    //         else
+    //         {
+    //             var result = requestServices.AllProductsOk(request, menu!);
+    //             if (result is not null)
+    //             {
+    //                 productsOutput = productsOutput.Concat(result).ToList();
+    //             }
+    //         }
 
-        }
+    //     }
 
-        if (productsOutput.Count > 0)
-        {
-            return productsOutput;
-        }
+    //     if (productsOutput.Count > 0)
+    //     {
+    //         return productsOutput;
+    //     }
 
-        await Task.WhenAll(cart.Requests.ToList().Select(request => requestServices.DiscountFromInventaryAsync(request, cart.EstablishmentId)));
-        var order = await orderServices.CreateOrderAsync(cart);
+    //     await Task.WhenAll(cart.Requests.ToList().Select(request => requestServices.DiscountFromInventaryAsync(request, cart.EstablishmentId)));
+    //     var order = await orderServices.CreateOrderAsync(cart);
 
-        //todo: implemet payment method
+    //     //todo: implemet payment method
 
-        context.Carts.Remove(cart);
-        await context.SaveChangesAsync();
-        return order.ToOrderOutputDto();
-    }
+    //     context.Carts.Remove(cart);
+    //     await context.SaveChangesAsync();
+    //     return order.ToOrderOutputDto();
+    // }
 
     public async Task<OneOf<ResponseErrorDto, CanteenCart>> ApplyDiscountToCartAsync(
         int cardId)

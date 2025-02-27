@@ -63,4 +63,38 @@ public class OrderController(ICanteenOrderServices orderServices, IRequestServic
         logger.LogInformation("Request status updated correctly");
         return Ok(response);
     }
+    [HttpPost]
+    [Route("create")]
+    [Authorize(Roles = $"{nameof(RoleNames.CLIENT)},{nameof(RoleNames.ADMIN)}")]
+    public async Task<IActionResult> CreateOrder([FromBody] int cartId)
+    {
+        var result = await orderServices.CreateOrderAsync(cartId);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+
+        logger.LogInformation("Order created correctly");
+        return Ok(response);
+    }
+    [HttpPost]
+    [Route("checkout")]
+    [Authorize(Roles = $"{nameof(RoleNames.CLIENT)},{nameof(RoleNames.ADMIN)}")]
+    public async Task<IActionResult> ChackoutOrder(CheckoutOrderDto checkoutOrder)
+    {
+        var result = await orderServices.CheckoutOrder(orderId: checkoutOrder.OrderId, orderOwner: checkoutOrder.OrderOwnner);
+
+        if (result.TryPickT0(out var error, out var response))
+        {
+            logger.LogError($"Error status {error.Status} Detail:{error.Detail}");
+            return BadRequest(error);
+        }
+
+        logger.LogInformation("Order created correctly");
+        return Ok(response);
+    }
+
+
 }

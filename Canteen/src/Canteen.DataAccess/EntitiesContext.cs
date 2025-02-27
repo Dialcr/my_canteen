@@ -32,6 +32,7 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
     public DbSet<DeliveryTime> DeliveryTimes { get; set; }
     public DbSet<AppUser> Users { get; set; }
     public DbSet<IdentityRole> IdentityRole { get; set; }
+    public DbSet<OrderOwner> OrderOwners { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -81,6 +82,10 @@ public class EntitiesContext : IdentityDbContext<AppUser, IdentityRole<int>, int
         modelBuilder.Entity<Order>()
             .HasOne(x => x.Establishment)
             .WithMany(x => x.Orders);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.Owner)
+            .WithOne();
     }
 
     private void ConfigureEstablishmentEntity(ModelBuilder modelBuilder)
