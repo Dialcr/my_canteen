@@ -24,7 +24,7 @@ public class RequestOutputDto
 
     public IEnumerable<RequestProductDto>? RequestProducts { get; set; }
 
-    public RequestStatus Status { get; set; }
+    public string Status { get; set; }
 
     public int? CartId { get; set; }
 
@@ -45,7 +45,7 @@ public static class RequestExtention
             DeliveryLocation = request.DeliveryLocation,
             Id = request.Id,
             OrderId = request.OrderId,
-            Status = request.Status,
+            Status = request.Status.ToString(),
             UserId = request.UserId,
             DeliveryAmount = request.DeliveryAmount,
             DeliveryTimeId = request.DeliveryTimeId,
@@ -75,7 +75,7 @@ public static class RequestExtention
             DeliveryLocation = request.DeliveryLocation,
             Id = request.Id,
             OrderId = request.OrderId,
-            Status = request.Status,
+            Status = request.Status.ToString(),
             UserId = request.UserId,
             DeliveryAmount = request.DeliveryAmount,
             DeliveryTimeId = request.DeliveryTimeId,

@@ -8,7 +8,7 @@ public class OrderOutputDto
     public int Id { get; set; }
     public int EstablishmentId { get; set; }
 
-    public OrderStatus Status { get; set; }
+    public string Status { get; set; } = string.Empty;
 
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
@@ -27,7 +27,7 @@ public static class OrderExtention
 {
     public static OrderOutputDto ToOrderOutputDto(this DataAccess.Entities.Order order)
     {
-        
+
         return new OrderOutputDto()
         {
             Id = order.Id,
@@ -38,7 +38,7 @@ public static class OrderExtention
             DeliveryTotalDiscount = order.DeliveryTotalDiscount,
             PrductsTotalAmount = order.PrductsTotalAmount,
             ProductTotalDiscount = order.ProductTotalDiscount,
-            Status = order.Status,
+            Status = order.Status.ToString(),
             UpdatedAt = order.UpdatedAt,
             UserId = order.UserId,
             Requests = order.Requests!.Select(x => x.ToCanteenRequestWithProductsDto()).ToList()
