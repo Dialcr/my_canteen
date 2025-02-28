@@ -175,19 +175,35 @@ public class CanteenOrderServices(EntitiesContext context, IMenuServices menuSer
 
         var newOrder = new Order
         {
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             Status = OrderStatus.Created,
             Requests = cart.Requests,
             EstablishmentId = cart.EstablishmentId,
             PrductsTotalAmount = cart.Requests.Sum(x => x.TotalAmount),
             DeliveryTotalAmount = cart.Requests.Sum(x => x.DeliveryAmount),
-            UserId = cart.UserId
+            UserId = cart.UserId,
+
 
         };
-        newOrder.Identifier = newOrder.GenerateIdentifier();
 
         context.Orders.Add(newOrder);
+        try
+        {
+            await context.SaveChangesAsync();
+
+        }
+        catch (System.Exception ex)
+        {
+
+            return Error(ex.Message, ex.InnerException.Message, 400);
+        }
+
+
+        newOrder.Identifier = newOrder.GenerateIdentifier();
+        context.Orders.Update(newOrder);
+
         context.Carts.Remove(cart);
+
         await context.SaveChangesAsync();
 
 
